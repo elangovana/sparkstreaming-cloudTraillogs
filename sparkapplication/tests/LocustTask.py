@@ -12,7 +12,7 @@ class MockKinesisProducer(TaskSet):
         print("Hi.....")
 
 
-class MyLocust(Locust):
+class MockKinesisProducerLocust(Locust):
     task_set = MockKinesisProducer
     min_wait = 5000
     max_wait = 15000

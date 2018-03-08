@@ -1,0 +1,18 @@
+version: 0.2
+
+phases:
+  build:
+    commands:
+      - mkdir ./libs
+      - pip install -U -r requirements.txt -t ./src/libs
+      - mkdir ./dist
+      - cp ./src/main.py ./dist
+      - cd ./src && zip -x main.py -x \*libs\* -r ../dist/jobs.zip .
+      - cd ./src/libs && zip -r ../../dist/libs.zip .
+  post_build:
+    commands:
+      - echo Build completed on `date`
+artifacts:
+  files:
+    - ./dist/jobs.zip
+    - ./dist/libs.zip

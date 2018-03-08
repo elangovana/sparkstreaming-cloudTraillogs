@@ -68,7 +68,7 @@ def run(appName, streamName, endpointUrl, regionName ):
     ssc = StreamingContext(sc, 1)
     lines = KinesisUtils.createStream(
         ssc, appName, streamName, endpointUrl, regionName, InitialPositionInStream.LATEST, 2)
-    counts = lines.flatMap(lambda line: line.split(" ")) \
+    counts = lines.flatMap(lambda line: line.split("\n")) \
         .map(lambda word: (word, 1)) \
         .reduceByKey(lambda a, b: a + b)
     counts.pprint()

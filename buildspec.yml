@@ -6,11 +6,11 @@ phases:
     ## Package pyspark
       - cd sparkapplication
       - mkdir ./libs
-      - pip install -U -r requirements.txt -t ./src/libs
+      - pip install -U -r requirements.txt -t ./libs
       - mkdir ./dist
       - cp ./main.py ./dist
-      - zip -x main.py -x \*libs\* -r ../dist/jobs.zip .
-      - ./libs && zip -r ../../dist/libs.zip .
+      - python -m  zipfile -c jobs.zip  ./* && mv jobs.zip ./dist/jobs.zip
+      - python -m  zipfile -c libs.zip ./libs/* && mv libs.zip ./dist/libs.zip
   post_build:
     commands:
       - echo Build completed on `date`

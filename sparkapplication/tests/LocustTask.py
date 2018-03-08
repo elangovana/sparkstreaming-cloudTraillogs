@@ -70,7 +70,7 @@ class MockKinesisProducer(TaskSet):
         conn = kinesis.connect_to_region(region_name=region)
         try:
             #Check stream status
-            status = self.get_stream_status(self, conn, stream_name)
+            status = self.get_stream_status( conn, stream_name)
             if 'DELETING' == status:
                 print('The stream: {s} is being deleted, please rerun the script.'.format(s=stream_name))
                 sys.exit(1)

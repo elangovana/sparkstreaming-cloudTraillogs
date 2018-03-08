@@ -8,8 +8,8 @@ import uuid
 from locust import TaskSet, task
 from boto import kinesis
 
-class MockKinesisProducer(TaskSet):
 
+class MockKinesisProducer(TaskSet):
 
     def get_stream_status(self, conn, stream_name):
         '''
@@ -43,7 +43,7 @@ class MockKinesisProducer(TaskSet):
             time.sleep(SLEEP_TIME_SECONDS)  # sleep for 3 seconds
             status = self.get_stream_status(conn, stream_name)
 
-    def put_data_in_stream(self, conn, stream_name, data):
+    def put_record_in_stream(self, conn, stream_name, data):
         '''
         Put each word in the provided list of words into the stream.
         :type conn: boto.kinesis.layer1.KinesisConnection
@@ -61,29 +61,35 @@ class MockKinesisProducer(TaskSet):
             sys.stderr.write("Encountered an exception while trying to put data: "
                              + data + " into stream: " + stream_name + " exception was: " + str(e))
 
-
     @task
     def put_data(self):
-        #TODO: Fix hardcoded region
-        region="us-east-1"
+        # TODO: Fix hardcoded region
+        region = "us-east-1"
         stream_name = "myStream"
         conn = kinesis.connect_to_region(region_name=region)
         try:
-            #Check stream status
-            status = self.get_stream_status( conn, stream_name)
+            # Check stream status
+            status = self.get_stream_status(conn, stream_name)
             if 'DELETING' == status:
                 print('The stream: {s} is being deleted, please rerun the script.'.format(s=stream_name))
                 sys.exit(1)
             elif 'ACTIVE' != status:
-                self.wait_for_stream( conn, stream_name)
+                self.wait_for_stream(conn, stream_name)
 
-            #put data into stream
-            data = "This is a dummy data{}".format(str(datetime.now()))
-            self.put_data_in_stream(conn, stream_name, data)
+            # put data into stream
+            data = self.get_mock_data()
+            self.put_record_in_stream(conn, stream_name, data)
         except Exception as error:
             print('{}'.format(error))
             sys.exit(1)
 
+    def get_mock_data(self):
+        data = "-------------------"
+        max = 1000
+        for i in range(1, max):
+            data = data.format("{}\n line {} of {}: {}", data, i, max,  "This is a dummy data")
+        data = "This is a dummy data{}".format(str(datetime.now()))
+        return data
 
 
 class MockKinesisProducerLocust(Locust):

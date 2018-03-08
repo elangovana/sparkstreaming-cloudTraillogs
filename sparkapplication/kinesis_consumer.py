@@ -59,19 +59,37 @@ from __future__ import print_function
 import sys
 
 from pyspark import SparkContext
+from pyspark.sql.functions import from_json
 from pyspark.streaming import StreamingContext
 from pyspark.streaming.kinesis import KinesisUtils, InitialPositionInStream
+from pyspark.sql.types import *
+
+class CloudTrailLogProcessor:
+
+    def process(self, ssc, dstreamRecords):
+        # Union
+
+        pythonSchema = StructType() \
+            .add("awsRegion", StringType()) \
+            .add("sourceIPAddress", StringType()) \
+
+           # .add("timestamp", TimestampType())
+
+        dataDevicesDF = dstreamRecords \
+            .selectExpr("cast (data as STRING) jsonData") \
+            .select(from_json("jsonData", pythonSchema).alias("ctrail")) \
+            .select("ctrail.*") \
+            .groupby("sourceIPAddress")
+
+        dataDevicesDF.pprint()
 
 
-def run(appName, streamName, endpointUrl, regionName ):
+def run(appName, streamName, endpointUrl, regionName):
     sc = SparkContext(appName="PythonStreamingKinesisWordCountAsl")
     ssc = StreamingContext(sc, 1)
-    lines = KinesisUtils.createStream(
+    dstreamRecords = KinesisUtils.createStream(
         ssc, appName, streamName, endpointUrl, regionName, InitialPositionInStream.LATEST, 2)
-    counts = lines.flatMap(lambda line: line.split("\n")) \
-        .map(lambda word: (word, 1)) \
-        .reduceByKey(lambda a, b: a + b)
-    counts.pprint()
+    CloudTrailLogProcessor().process(ssc, dstreamRecords)
     ssc.start()
     ssc.awaitTermination()
 
@@ -84,4 +102,4 @@ if __name__ == "__main__":
         sys.exit(-1)
     appName, streamName, endpointUrl, regionName = sys.argv[1:]
 
-    run(appName, streamName, endpointUrl, regionName )
+    run(appName, streamName, endpointUrl, regionName)

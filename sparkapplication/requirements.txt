@@ -1,3 +1,3 @@
-pyspark
-locustio
-boto
+pyspark=2.2.0
+locustio==0.8.1
+boto==2.48.0

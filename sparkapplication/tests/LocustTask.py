@@ -75,7 +75,7 @@ class MockKinesisProducer(TaskSet):
                 print('The stream: {s} is being deleted, please rerun the script.'.format(s=stream_name))
                 sys.exit(1)
             elif 'ACTIVE' != status:
-                self.wait_for_stream(self, conn, stream_name)
+                self.wait_for_stream( conn, stream_name)
 
             #put data into stream
             data = "This is a dummy data{}".format(str(datetime.now()))

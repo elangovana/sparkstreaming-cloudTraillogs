@@ -3,6 +3,8 @@ version: 0.2
 phases:
   build:
     commands:
+    ## Package pyspark
+      - cd sparkapplication
       - mkdir ./libs
       - pip install -U -r requirements.txt -t ./src/libs
       - mkdir ./dist
@@ -14,5 +16,5 @@ phases:
       - echo Build completed on `date`
 artifacts:
   files:
-    - ./dist/jobs.zip
-    - ./dist/libs.zip
+    - ./sparkapplication/dist/jobs.zip
+    - ./sparkapplication/dist/libs.zip

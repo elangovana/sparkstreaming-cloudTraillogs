@@ -87,8 +87,8 @@ class MockKinesisProducer(TaskSet):
         data = "-------------------"
         max = 1000
         for i in range(1, max):
-            data = data.format("{}\n line {} of {}: {}", data, i, max,  "This is a dummy data")
-        data = data.format( "{}\n-----End of record at {}-----".format(data,str(datetime.now())))
+            data = "{}\n line {} of {}: {}".format( data, i, max,  "This is a dummy data")
+        data = "{}\n-----End of record at {}-----".format(data,str(datetime.now()))
         return data
 
 

@@ -58,7 +58,7 @@ from __future__ import print_function
 import json
 import uuid
 
-import boto.dynamodb
+from boto import  dynamodb
 import time
 from pyspark import HiveContext, SQLContext
 from pyspark.sql.functions import from_json
@@ -99,7 +99,7 @@ class CloudTrailLogProcessor:
             #     , 'count': {'N': str(hits)}
             #                                                      })
 
-            conn = boto.dynamodb.connect_to_region(
+            conn = dynamodb.connect_to_region(
                 'us-east-1')
 
             table = conn.get_table('CloudTrailAnomaly')

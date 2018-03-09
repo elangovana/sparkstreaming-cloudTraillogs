@@ -11,6 +11,6 @@ class KinesisConsumer:
         ssc = StreamingContext(sc, 1)
         dstreamRecords = KinesisUtils.createStream(
             ssc, appName, streamName, endpointUrl, regionName, InitialPositionInStream.LATEST, 2)
-        CloudTrailLogProcessor().process(ssc, dstreamRecords)
+        CloudTrailLogProcessor().process(sc, ssc, dstreamRecords)
         ssc.start()
         ssc.awaitTermination()

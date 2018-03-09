@@ -56,27 +56,45 @@
 """
 from __future__ import print_function
 
+from pyspark import HiveContext, SQLContext
 from pyspark.sql.functions import from_json
 from pyspark.sql.types import StructType, StringType
 
 
 class CloudTrailLogProcessor:
 
-    def process(self, ssc, dstreamRecords):
-        # Union
-
+    def process(self, sc, ssc, dstreamRecords):
         pythonSchema = StructType() \
             .add("awsRegion", StringType()) \
-            .add("sourceIPAddress", StringType()) \
- \
-        # .add("timestamp", TimestampType())
+            .add("sourceIPAddress", StringType())
 
-        dataDevicesDF = dstreamRecords \
-            .selectExpr("cast (data as STRING) jsonData") \
-            .select(from_json("jsonData", pythonSchema).alias("ctrail")) \
-            .select("ctrail.*") \
-            .groupby("sourceIPAddress")
 
-        dataDevicesDF.pprint()
+        def process_rdd(rdd):
+            print(rdd)
+            rdd.map(lambda a: str(a)).map(lambda a: from_json("jsonData", pythonSchema).alias("ctrail"))
+
+
+        #rdd.map(_.split(",")).map(p= > Persons(p(0), p(1).trim.toInt)).registerAsTable("data")
+
+        sqc = SQLContext(sc);
+
+        teenagers = sqc.sql("SELECT name FROM ctrail ")
+        print(teenagers)
+
+        dstreamRecords.foreachRDD(process_rdd)
+
+
+ # \
+ #        # .add("timestamp", TimestampType())
+ #
+ #        context = HiveContext(sc)
+ #
+ #        dataDevicesDF = dstreamRecords \
+ #            .selectExpr("cast (data as STRING) jsonData") \
+ #            .select(from_json("jsonData", pythonSchema).alias("ctrail")) \
+ #            .select("ctrail.*") \
+ #            .groupby("sourceIPAddress")
+ #
+ #        dataDevicesDF.pprint()
 
 

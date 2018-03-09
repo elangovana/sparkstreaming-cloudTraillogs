@@ -78,12 +78,31 @@ class CloudTrailLogProcessor:
 
 
     def process(self, sc, ssc, dstreamRecords):
-        # print("process......")
+
+        # TODO filter for count > threshold
         json_dstream = dstreamRecords.map(lambda v: json.loads(v)). \
             map(lambda ct: (ct['sourceIPAddress'], 1)). \
             reduceByKeyAndWindow(lambda  a, b: a+b, invFunc=None, windowDuration=30, slideDuration=30)
 
+        #Write anomalies to dynamodb
         json_dstream.foreachRDD(lambda x: self.write_to_dynamodb(x))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         # counts = dstreamRecords.map(lambda word: (str(uuid.uuid4()), 1)) \
         #     .reduceByKey(lambda a, b: a + b)

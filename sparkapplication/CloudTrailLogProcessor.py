@@ -88,9 +88,9 @@ class CloudTrailLogProcessor:
             #
             # DataNotFoundError: Unable to load for endpoints
 
-            client = boto3.client('dynamodb',  region_name='us-east-1', api_version='2012-08-10')
             ip = item[0]
             hits = item[1]
+            client = boto3.client('dynamodb',  region_name='us-east-1', api_version='2012-08-10')
             print("ip {} hit {}", ip, hits)
             client.put_item(TableName='CloudTrailAnomaly', Item={'id': {'S': str(uuid.uuid4())}
                 , 'timestamp': {'N': str(int(time.time()))}

@@ -78,7 +78,7 @@ class CloudTrailLogProcessor:
             map(lambda ct: (ct['sourceIPAddress'], 1)). \
             reduceByKeyAndWindow(lambda  a, b: a+b, invFunc=None, windowDuration=30, slideDuration=30)
 
-        def write_to_dynamodb(self, item):
+        def write_to_dynamodb(item):
             client = boto3.client('dynamodb')
             client.put_item(TableName='CloudTrailAnomaly', Item={'id': {'S': str(uuid.uuid4())}
                 , 'timestamp': {'N': str(int(time.time()))}

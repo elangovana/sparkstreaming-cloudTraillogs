@@ -87,7 +87,7 @@ class CloudTrailLogProcessor:
                                                                  })
 
         #Write anomalies to dynamodb
-        json_dstream.foreachRDD(write_to_dynamodb)
+        json_dstream.foreachRDD(lambda rdd: rdd.foreach(write_to_dynamodb))
 
 
 

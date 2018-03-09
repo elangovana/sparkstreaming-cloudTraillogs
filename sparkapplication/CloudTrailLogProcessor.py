@@ -64,13 +64,18 @@ from pyspark.sql.types import StructType, StringType
 class CloudTrailLogProcessor:
 
     def process(self, sc, ssc, dstreamRecords):
-        print("process......")
-        json_dstream = dstreamRecords.map(lambda v: json.loads(v))
-        json_dstream.pprint()
-        text_counts = json_dstream.map(lambda ct: (ct['awsRegion'], 1)). \
-            reduceByKey(lambda x, y: x + y)
+        # print("process......")
+        # json_dstream = dstreamRecords.map(lambda v: json.loads(v))
+        # json_dstream.pprint()
+        # text_counts = json_dstream.map(lambda ct: (ct['awsRegion'], 1)). \
+        #     reduceByKey(lambda x, y: x + y)
+        #
+        # text_counts.pprint()
 
-        text_counts.pprint()
+        counts = dstreamRecords.flatMap(lambda line: line.split("\n")) \
+            .map(lambda word: (word, 1)) \
+            .reduceByKey(lambda a, b: a + b)
+        counts.pprint()
 
         # pythonSchema = StructType() \
         #     .add("awsRegion", StringType()) \

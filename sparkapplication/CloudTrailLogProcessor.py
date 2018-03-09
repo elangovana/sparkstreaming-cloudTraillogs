@@ -65,7 +65,7 @@ class CloudTrailLogProcessor:
 
     def process(self, sc, ssc, dstreamRecords):
         print("process......")
-        json_dstream = dstreamRecords.map(lambda v: json.loads(v[1]))
+        json_dstream = dstreamRecords.map(lambda v: json.loads(v))
         json_dstream.pprint()
         text_counts = json_dstream.map(lambda ct: (ct['awsRegion'], 1)). \
             reduceByKey(lambda x, y: x + y)

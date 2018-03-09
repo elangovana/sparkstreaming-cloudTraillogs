@@ -1083,7 +1083,7 @@
           "Ref": "EMRInstanceProfile"
         },
         "Name": "EMR Cloud Cluster",
-        "ReleaseLabel": "emr-5.1.0",
+        "ReleaseLabel": "emr-5.5.1",
         "ServiceRole": {
           "Ref": "EMRServiceRole"
         },

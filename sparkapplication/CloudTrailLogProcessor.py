@@ -73,14 +73,14 @@ class CloudTrailLogProcessor:
         def process_rdd(rdd):
             print(rdd)
             rdd.map(lambda a: str(a)).map(lambda a: from_json("jsonData", pythonSchema).registerAsTable("ctrail"))
+            teenagers = sqc.sql("SELECT name FROM ctrail ")
+            print(teenagers)
 
 
         #rdd.map(_.split(",")).map(p= > Persons(p(0), p(1).trim.toInt)).registerAsTable("data")
 
         sqc = SQLContext(sc);
 
-        teenagers = sqc.sql("SELECT name FROM ctrail ")
-        print(teenagers)
 
         dstreamRecords.foreachRDD(process_rdd)
 

@@ -87,7 +87,7 @@ class MockKinesisProducer(TaskSet):
         json_data = """{
 
     "awsRegion": "us-east-2",
-    "sourceIPAddress": "205.251.233.182",
+    "sourceIPAddress": "205.251.233.182":
 
 }
 """

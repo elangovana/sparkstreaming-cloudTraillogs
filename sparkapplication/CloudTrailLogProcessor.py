@@ -56,6 +56,8 @@
 """
 from __future__ import print_function
 import json
+import uuid
+
 from pyspark import HiveContext, SQLContext
 from pyspark.sql.functions import from_json
 from pyspark.sql.types import StructType, StringType
@@ -72,7 +74,7 @@ class CloudTrailLogProcessor:
         #
         # text_counts.pprint()
 
-        counts = dstreamRecords.map(lambda word: (word, 1)) \
+        counts = dstreamRecords.map(lambda word: (str(uuid.uuid4()), 1)) \
             .reduceByKey(lambda a, b: a + b)
         counts.pprint()
 

@@ -7,7 +7,7 @@ from datetime import datetime
 import uuid
 from locust import TaskSet, task
 from boto import kinesis
-
+import random
 
 class MockKinesisProducer(TaskSet):
 
@@ -77,20 +77,26 @@ class MockKinesisProducer(TaskSet):
                 self.wait_for_stream(conn, stream_name)
 
             # put data into stream
-            data = self.get_mock_data()
+            data = self.get_mock_data(israndom= False)
+            self.put_record_in_stream(conn, stream_name, data)
+            data = self.get_mock_data(israndom=True)
             self.put_record_in_stream(conn, stream_name, data)
         except Exception as error:
             print('{}'.format(error))
             sys.exit(1)
 
-    def get_mock_data(self):
-        json_data = """{
+    def get_mock_data(self, israndom = True):
+        ip = "205.251.233.182"
+        if israndom:
+            ip = "{}.251.233.{}".format(random.randrange(1,255), random.randrange(1,255))
+
+        json_data = {
 
     "awsRegion": "us-east-2",
-    "sourceIPAddress": "205.251.233.182":
+    "sourceIPAddress": ip
 
 }
-"""
+
 
         # json_data = """{
         #     "eventVersion": "1.04",

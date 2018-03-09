@@ -82,6 +82,7 @@ class CloudTrailLogProcessor:
             client = boto3.client('dynamodb')
             ip = item[0]
             hits = item[1]
+            print("ip {} hit {}", ip, hits)
             client.put_item(TableName='CloudTrailAnomaly', Item={'id': {'S': str(uuid.uuid4())}
                 , 'timestamp': {'N': str(int(time.time()))}
                 , 'sourceIPAddress': {'S': ip}

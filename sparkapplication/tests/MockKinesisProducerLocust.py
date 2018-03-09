@@ -2,7 +2,7 @@ import sys
 
 import time
 from locust import Locust
-
+import json
 from datetime import datetime
 import uuid
 from locust import TaskSet, task
@@ -91,7 +91,6 @@ class MockKinesisProducer(TaskSet):
             ip = "{}.251.233.{}".format(random.randrange(1,255), random.randrange(1,255))
 
         json_data = {
-
     "awsRegion": "us-east-2",
     "sourceIPAddress": ip
 
@@ -128,7 +127,7 @@ class MockKinesisProducer(TaskSet):
         # for i in range(1, max):
         #     data = "{}\n {}".format( data,   "This is a dummy data")
         # data = "{}\n-----End of record at {} with {} records-----".format(data,str(datetime.now()), max)
-        return json_data
+        return json.dumps(json_data)
 
 
 class MockKinesisProducerLocust(Locust):

@@ -4,12 +4,11 @@ phases:
   build:
     commands:
     ## Package pyspark
-      - cd sparkapplication
       - mkdir ./libs
       - pip install -U -r requirements.txt -t ./libs
       - mkdir ./dist
       - cp ./main.py ./dist
-      - python -m  zipfile -c jobs.zip  ./* && mv jobs.zip ./dist/jobs.zip
+      - python -m  zipfile -c jobs.zip  sparkapplication && mv jobs.zip ./dist/jobs.zip
       - python -m  zipfile -c libs.zip ./libs/* && mv libs.zip ./dist/libs.zip
   post_build:
     commands:

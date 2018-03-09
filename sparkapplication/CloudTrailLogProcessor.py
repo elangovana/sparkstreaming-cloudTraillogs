@@ -79,7 +79,8 @@ class CloudTrailLogProcessor:
             reduceByKeyAndWindow(lambda  a, b: a+b, invFunc=None, windowDuration=30, slideDuration=30)
 
         def write_to_dynamodb(item):
-            client = boto3.client('dynamodb')
+            #TODO hardcode region name to fix
+            client = boto3.client('dynamodb',  region_name='us-east-1')
             ip = item[0]
             hits = item[1]
             print("ip {} hit {}", ip, hits)

@@ -78,6 +78,11 @@ class CloudTrailLogProcessor:
             .reduceByKey(lambda a, b: a + b)
         counts.pprint()
 
+        dstreamRecords.flatMap(lambda line: line.split(" ")) \
+            .map(lambda word: (word, 1)) \
+            .reduceByKey(lambda a, b: a + b)
+        counts.pprint()
+
         # pythonSchema = StructType() \
         #     .add("awsRegion", StringType()) \
         #     .add("sourceIPAddress", StringType())

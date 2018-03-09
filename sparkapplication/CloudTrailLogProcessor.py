@@ -80,10 +80,12 @@ class CloudTrailLogProcessor:
 
         def write_to_dynamodb(item):
             client = boto3.client('dynamodb')
+            ip = item[0]
+            hits = item[1]
             client.put_item(TableName='CloudTrailAnomaly', Item={'id': {'S': str(uuid.uuid4())}
                 , 'timestamp': {'N': str(int(time.time()))}
-                , 'sourceIPAddress': {'S': item[0]}
-                , 'count': {'N': str(item[1])}
+                , 'sourceIPAddress': {'S': ip}
+                , 'count': {'N': str(hits)}
                                                                  })
 
         #Write anomalies to dynamodb

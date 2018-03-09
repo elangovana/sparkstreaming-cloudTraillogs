@@ -72,8 +72,7 @@ class CloudTrailLogProcessor:
         #
         # text_counts.pprint()
 
-        counts = dstreamRecords.flatMap(lambda line: line.split("\n")) \
-            .map(lambda word: (word, 1)) \
+        counts = dstreamRecords.map(lambda word: (word, 1)) \
             .reduceByKey(lambda a, b: a + b)
         counts.pprint()
 

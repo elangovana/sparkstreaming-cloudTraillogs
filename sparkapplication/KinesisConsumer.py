@@ -1,7 +1,7 @@
 from pyspark import SparkContext
 from pyspark.streaming import StreamingContext
 from pyspark.streaming.kinesis import KinesisUtils, InitialPositionInStream
-
+import pyspark.sql.streaming
 from sparkapplication.CloudTrailLogProcessor import CloudTrailLogProcessor
 
 

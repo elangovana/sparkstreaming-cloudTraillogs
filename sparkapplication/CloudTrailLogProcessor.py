@@ -58,6 +58,8 @@ from __future__ import print_function
 import json
 import uuid
 
+import boto3
+import time
 from pyspark import HiveContext, SQLContext
 from pyspark.sql.functions import from_json
 from pyspark.sql.types import StructType, StringType
@@ -65,13 +67,23 @@ from pyspark.sql.types import StructType, StringType
 
 class CloudTrailLogProcessor:
 
+    def write_to_dynamodb(self, item):
+        client = boto3.client('dynamodb')
+        client.put_item(TableName='CloudTrailAnomaly', Item={'id': {'S': str(uuid.uuid4())}
+                                                             ,'timestamp': {'N': str(int(time.time()))}
+                                                             ,'sourceIPAddress':{'S': item[0]}
+                                                             ,'count':{'N': str(item[1])}
+                                                             })
+
+
+
     def process(self, sc, ssc, dstreamRecords):
         # print("process......")
         json_dstream = dstreamRecords.map(lambda v: json.loads(v)). \
-            map(lambda ct: (ct['awsRegion'], 1)). \
+            map(lambda ct: (ct['sourceIPAddress'], 1)). \
             reduceByKeyAndWindow(lambda  a, b: a+b, invFunc=None, windowDuration=30, slideDuration=30)
 
-        json_dstream.pprint()
+        json_dstream.foreachRDD(lambda x: self.write_to_dynamodb(x))
 
         # counts = dstreamRecords.map(lambda word: (str(uuid.uuid4()), 1)) \
         #     .reduceByKey(lambda a, b: a + b)

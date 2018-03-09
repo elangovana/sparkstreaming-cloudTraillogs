@@ -55,7 +55,7 @@
   the Kinesis Spark Streaming integration.
 """
 from __future__ import print_function
-
+import json
 from pyspark import HiveContext, SQLContext
 from pyspark.sql.functions import from_json
 from pyspark.sql.types import StructType, StringType
@@ -64,25 +64,30 @@ from pyspark.sql.types import StructType, StringType
 class CloudTrailLogProcessor:
 
     def process(self, sc, ssc, dstreamRecords):
+        json_dstream = dstreamRecords.map(lambda v: json.loads(v[1]))
+        text_counts = json_dstream.map(lambda ct: (ct['awsRegion'], 1)). \
+            reduceByKey(lambda x, y: x + y)
 
-        pythonSchema = StructType() \
-            .add("awsRegion", StringType()) \
-            .add("sourceIPAddress", StringType())
+        text_counts.pprint()
 
-
-        def process_rdd(rdd):
-            print(rdd)
-            rdd.map(lambda a: str(a)).map(lambda a: from_json("jsonData", pythonSchema).registerAsTable("ctrail"))
-            teenagers = sqc.sql("SELECT name FROM ctrail ")
-            print(teenagers)
-
-
-        #rdd.map(_.split(",")).map(p= > Persons(p(0), p(1).trim.toInt)).registerAsTable("data")
-
-        sqc = SQLContext(sc);
-
-
-        dstreamRecords.foreachRDD(process_rdd)
+        # pythonSchema = StructType() \
+        #     .add("awsRegion", StringType()) \
+        #     .add("sourceIPAddress", StringType())
+        #
+        #
+        # def process_rdd(rdd):
+        #     print(rdd)
+        #     rdd.map(lambda a: str(a)).map(lambda a: from_json(a, pythonSchema).registerAsTable("ctrail"))
+        #     teenagers = sqc.sql("SELECT name FROM ctrail ")
+        #     print(teenagers)
+        #
+        #
+        # #rdd.map(_.split(",")).map(p= > Persons(p(0), p(1).trim.toInt)).registerAsTable("data")
+        #
+        # sqc = SQLContext(sc);
+        #
+        #
+        # dstreamRecords.foreachRDD(process_rdd)
 
 
  # \

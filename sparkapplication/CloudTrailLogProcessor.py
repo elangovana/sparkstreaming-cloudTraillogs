@@ -64,6 +64,7 @@ from pyspark.sql.types import StructType, StringType
 class CloudTrailLogProcessor:
 
     def process(self, sc, ssc, dstreamRecords):
+
         pythonSchema = StructType() \
             .add("awsRegion", StringType()) \
             .add("sourceIPAddress", StringType())
@@ -71,7 +72,7 @@ class CloudTrailLogProcessor:
 
         def process_rdd(rdd):
             print(rdd)
-            rdd.map(lambda a: str(a)).map(lambda a: from_json("jsonData", pythonSchema).alias("ctrail"))
+            rdd.map(lambda a: str(a)).map(lambda a: from_json("jsonData", pythonSchema).registerAsTable("ctrail"))
 
 
         #rdd.map(_.split(",")).map(p= > Persons(p(0), p(1).trim.toInt)).registerAsTable("data")

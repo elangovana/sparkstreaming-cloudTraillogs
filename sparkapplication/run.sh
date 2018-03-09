@@ -6,4 +6,4 @@ spark-submit  --packages org.apache.spark:spark-streaming-kinesis-asl_2.11:2.1.2
 
 
 # Kick off locut to data inot kinese
-locust -f MockKinesisProducerLocust.py --no-web -c 1 -r 1
+locust -f buildartifacts/dist/MockKinesisProducerLocust.py --no-web -c 1 -r 1

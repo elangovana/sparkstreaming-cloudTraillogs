@@ -80,7 +80,15 @@ class CloudTrailLogProcessor:
 
         def write_to_dynamodb(item):
             #TODO hardcode region name to fix
-            client = boto3.client('dynamodb',  region_name='us-east-1')
+            #Bug:  boto3.client('dynamodb' requires api version & region name, else I get the error
+            #     File
+            #     "/tmp/pip-build-KYLsEh/botocore/botocore/loaders.py", line
+            #     424, in load_data
+            #     raise DataNotFoundError(data_path=name)
+            #
+            # DataNotFoundError: Unable to load for endpoints
+
+            client = boto3.client('dynamodb',  region_name='us-east-1', api_version='2012-08-10')
             ip = item[0]
             hits = item[1]
             print("ip {} hit {}", ip, hits)

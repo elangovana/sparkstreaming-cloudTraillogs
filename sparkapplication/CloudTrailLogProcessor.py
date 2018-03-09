@@ -58,7 +58,7 @@ from __future__ import print_function
 import json
 import uuid
 
-import boto3
+import boto.dynamodb
 import time
 from pyspark import HiveContext, SQLContext
 from pyspark.sql.functions import from_json
@@ -92,12 +92,31 @@ class CloudTrailLogProcessor:
             hits = item[1]
             print("ip {} hit {}", ip, hits)
 
-            client = boto3.client('dynamodb',  region_name='us-east-1', api_version='2012-08-10')
-            client.put_item(TableName='CloudTrailAnomaly', Item={'id': {'S': str(uuid.uuid4())}
-                , 'timestamp': {'N': str(int(time.time()))}
-                , 'sourceIPAddress': {'S': ip}
-                , 'count': {'N': str(hits)}
-                                                                 })
+            # client = boto3.client('dynamodb',  region_name='us-east-1', api_version='2012-08-10')
+            # client.put_item(TableName='CloudTrailAnomaly', Item={'id': {'S': str(uuid.uuid4())}
+            #     , 'timestamp': {'N': str(int(time.time()))}
+            #     , 'sourceIPAddress': {'S': ip}
+            #     , 'count': {'N': str(hits)}
+            #                                                      })
+
+            conn = boto.dynamodb.connect_to_region(
+                'us-east-1')
+
+            table = conn.get_table('CloudTrailAnomaly')
+            item_data = {
+                'sourceIPAddress': ip,
+                'count': hits
+            }
+            dynmodb_item = table.new_item(
+                # Our hash key is 'forum'
+                hash_key=str(uuid.uuid4()),
+                # Our range key
+                range_key=str(int(time.time())),
+                # This has the
+                attrs=item_data
+            )
+            dynmodb_item.put()
+
 
         #Write anomalies to dynamodb
         json_dstream.foreachRDD(lambda rdd: rdd.foreach(write_to_dynamodb))

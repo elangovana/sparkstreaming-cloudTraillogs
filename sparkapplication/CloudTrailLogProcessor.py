@@ -74,11 +74,11 @@ class CloudTrailLogProcessor:
         #
         # text_counts.pprint()
 
-        counts = dstreamRecords.map(lambda word: (str(uuid.uuid4()), 1)) \
-            .reduceByKey(lambda a, b: a + b)
-        counts.pprint()
+        # counts = dstreamRecords.map(lambda word: (str(uuid.uuid4()), 1)) \
+        #     .reduceByKey(lambda a, b: a + b)
+        # counts.pprint()
 
-        dstreamRecords.flatMap(lambda line: line.split(" ")) \
+        counts = dstreamRecords.flatMap(lambda line: line.split(" ")) \
             .map(lambda word: (word, 1)) \
             .reduceByKey(lambda a, b: a + b)
         counts.pprint()

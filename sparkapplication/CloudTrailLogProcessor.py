@@ -67,13 +67,7 @@ from pyspark.sql.types import StructType, StringType
 
 class CloudTrailLogProcessor:
 
-    def write_to_dynamodb(self, item):
-        client = boto3.client('dynamodb')
-        client.put_item(TableName='CloudTrailAnomaly', Item={'id': {'S': str(uuid.uuid4())}
-                                                             ,'timestamp': {'N': str(int(time.time()))}
-                                                             ,'sourceIPAddress':{'S': item[0]}
-                                                             ,'count':{'N': str(item[1])}
-                                                             })
+
 
 
 
@@ -84,8 +78,16 @@ class CloudTrailLogProcessor:
             map(lambda ct: (ct['sourceIPAddress'], 1)). \
             reduceByKeyAndWindow(lambda  a, b: a+b, invFunc=None, windowDuration=30, slideDuration=30)
 
+        def write_to_dynamodb(self, item):
+            client = boto3.client('dynamodb')
+            client.put_item(TableName='CloudTrailAnomaly', Item={'id': {'S': str(uuid.uuid4())}
+                , 'timestamp': {'N': str(int(time.time()))}
+                , 'sourceIPAddress': {'S': item[0]}
+                , 'count': {'N': str(item[1])}
+                                                                 })
+
         #Write anomalies to dynamodb
-        json_dstream.foreachRDD(lambda x: self.write_to_dynamodb(x))
+        json_dstream.foreachRDD(write_to_dynamodb)
 
 
 

@@ -5,7 +5,7 @@ phases:
     commands:
     ## Package pyspark
       - mkdir ./libs
-      - pip install -U -r requirements.txt -t ./libs
+      - pip install -U -r sparkapplication/requirements.txt -t ./libs
       - mkdir ./dist
       - cp ./main.py ./dist
       - python -m  zipfile -c jobs.zip  sparkapplication && mv jobs.zip ./dist/jobs.zip

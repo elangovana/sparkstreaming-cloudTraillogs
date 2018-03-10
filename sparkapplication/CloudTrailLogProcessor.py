@@ -115,17 +115,20 @@ class CloudTrailLogProcessor:
         ip = "1.0.0.0"
         hits = 0
         client = boto3.client('kinesis')
-        Item = {'id': {'S': str(uuid.uuid4())}
-                    , 'detectedOnTimestamp': {'N': str(int(time.time()))}
+        stream_name = "AnomalyEventStream"
+        hash_key = str(uuid.uuid4())
+        detectOnTimeStamp = str(int(time.time()))
+        item = {'id': {'S': hash_key}
+                    , 'detectedOnTimestamp': {'N': detectOnTimeStamp}
                     , 'sourceIPAddress': {'S': ip}
                     , 'count': {'N': str(hits)}}
 
         response = client.put_record(
-            StreamName='string',
-            Data=b'bytes',
-            PartitionKey='string',
-            ExplicitHashKey='string',
-            SequenceNumberForOrdering='string'
+            StreamName=stream_name,
+            Data=json.dumps(item),
+            PartitionKey=str(uuid.uuid4()),
+            ExplicitHashKey=hash_key,
+            SequenceNumberForOrdering=detectOnTimeStamp
         )
 
 
@@ -136,8 +139,7 @@ class CloudTrailLogProcessor:
             map(lambda ct: (ct['sourceIPAddress'], 1)). \
             reduceByKeyAndWindow(lambda  a, b: a+b, invFunc=None, windowDuration=30, slideDuration=30)
 
-
-
+        json_dstream.pprint()
 
 
 

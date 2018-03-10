@@ -8,24 +8,13 @@ spark-submit  --packages org.apache.spark:spark-streaming-kinesis-asl_2.11:2.1.2
 # Kick off locut to data inot kinese
 locust -f buildartifacts/dist/MockKinesisProducerLocust.py --no-web -c 1 -r 1
 
-import boto.dynamodb, uuid, time
+virtualenv demo_env
+virtualenv --relocatable  demo_env
+source demo_env/bin/activate
+PYSPARK_PYTHON=demo_env/bin/python
+spark-submit --conf spark.yarn.appMasterEnv.PYSPARK_PYTHON=demo_env/bin/python --master yarn-cluster --archives buildartifacts/dist/jobs.zip#sparkapplication  buildartifacts/dist/main.py
 
-ip = '10.1.1.2'
-hits = 10
-print("ip {} hit {}", ip, hits)
-conn = boto.dynamodb.connect_to_region(
-                'us-east-1')
 
-table = conn.get_table('CloudTrailAnomaly')
-item_data = {
-    'sourceIPAddress': ip,
-    'count': hits
-}
-i=table.new_item(
-    # Our hash key is 'forum'
-    hash_key=str(uuid.uuid4()),
-    # Our range key
-    range_key=(int(time.time())),
-    # This has the
-    attrs=item_data
-)
+zip -r demo_env.zip demo_env
+source activate demo
+spark-submit --master yarn-client --conf spark.pyspark.virtualenv.enabled=true--conf spark.pyspark.virtualenv.type=conda--conf spark.pyspark.virtualenv.requirements=buildartifacts/dist/requirements.txt --conf spark.pyspark.virtualenv.bin.path

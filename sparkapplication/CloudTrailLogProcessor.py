@@ -124,8 +124,8 @@ class CloudTrailLogProcessor:
 
         # ip = item[0]
         # hits = item[1]
-        ip = "1.0.0.0"
-        hits = 0
+        ip = item[0]
+        hits =item[1]
 
         print("ip {} hit {}", ip, hits)
 
@@ -149,19 +149,22 @@ class CloudTrailLogProcessor:
         )
         dynmodb_item.put()
 
-    def write_to_kineses(self, rdd):
-        ip = "1.0.0.0"
-        hits = 0
-        client = boto3.client('kinesis')
-        stream_name = "AnomalyEventStream"
+    def write_to_kineses(self, anomaly_tuple):
+        ip = anomaly_tuple[0]
+        hits = anomaly_tuple[1]
         hash_key = str(uuid.uuid4())
         detectOnTimeStamp = str(int(time.time()))
+        #TODO Hardcode names for stream
+        stream_name = "AnomalyEventStream"
+
+        client = boto3.client('kinesis')
+
         item = {'id': {'S': hash_key}
                     , 'detectedOnTimestamp': {'N': detectOnTimeStamp}
                     , 'sourceIPAddress': {'S': ip}
                     , 'count': {'N': str(hits)}}
 
-        response = client.put_record(
+        client.put_record(
             StreamName=stream_name,
             Data=json.dumps(item),
             PartitionKey=str(uuid.uuid4()),
@@ -179,7 +182,7 @@ class CloudTrailLogProcessor:
         json_dstream.pprint()
 
         #Write anomalies to dynamodb
-        json_dstream.foreachRDD(lambda rdd: rdd.foreach(lambda x:self.write_to_dynamodb_boto2(x)))
+        json_dstream.foreachRDD(lambda rdd: rdd.foreach(lambda x:self.write_to_kineses(x)))
 
 
 

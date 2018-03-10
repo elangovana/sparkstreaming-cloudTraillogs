@@ -145,7 +145,7 @@ class CloudTrailLogProcessor:
 
 
         #Write anomalies to dynamodb
-        json_dstream.foreachRDD(lambda rdd: rdd.foreach(lambda x:self.write_to_kineses(x)))
+        #json_dstream.foreachRDD(lambda rdd: rdd.foreach(lambda x:self.write_to_kineses(x)))
 
 
 

@@ -58,13 +58,14 @@ from __future__ import print_function
 import json
 import uuid
 
-from boto import  dynamodb
+from boto import dynamodb
 import boto3
 import time
 from pyspark import HiveContext, SQLContext
 from pyspark.sql.functions import from_json
 from pyspark.sql.types import StructType, StringType
 from pyspark.streaming.kinesis import KinesisUtils
+
 
 class CloudTrailLogProcessor:
 
@@ -121,15 +122,12 @@ class CloudTrailLogProcessor:
         #
         # DataNotFoundError: Unable to load for endpoints
 
-
         # ip = item[0]
         # hits = item[1]
         ip = item[0]
-        hits =item[1]
+        hits = item[1]
 
         print("ip {} hit {}", ip, hits)
-
-
 
         conn = dynamodb.connect_to_region(
             'us-east-1')
@@ -154,15 +152,15 @@ class CloudTrailLogProcessor:
         hits = anomaly_tuple[1]
         hash_key = str(uuid.uuid4())
         detectOnTimeStamp = str(int(time.time()))
-        #TODO Hardcode names for stream
+        # TODO Hardcode names for stream
         stream_name = "AnomalyEventStream"
 
         client = boto3.client('kinesis')
 
         item = {'id': {'S': hash_key}
-                    , 'detectedOnTimestamp': {'N': detectOnTimeStamp}
-                    , 'sourceIPAddress': {'S': ip}
-                    , 'count': {'N': str(hits)}}
+            , 'detectedOnTimestamp': {'N': detectOnTimeStamp}
+            , 'sourceIPAddress': {'S': ip}
+            , 'count': {'N': str(hits)}}
 
         client.put_record(
             StreamName=stream_name,
@@ -171,41 +169,20 @@ class CloudTrailLogProcessor:
             SequenceNumberForOrdering=detectOnTimeStamp
         )
 
-
     def process(self, sc, ssc, dstreamRecords):
-
         # TODO filter for count > threshold
         json_dstream = dstreamRecords.map(lambda v: json.loads(v)). \
             map(lambda ct: (ct['sourceIPAddress'], 1)). \
-            reduceByKeyAndWindow(lambda  a, b: a+b, invFunc=None, windowDuration=30, slideDuration=30)
+            reduceByKeyAndWindow(lambda a, b: a + b, invFunc=None, windowDuration=30, slideDuration=30)
 
         json_dstream.pprint()
 
-        #Write anomalies to dynamodb
-        json_dstream.foreachRDD(lambda rdd: rdd.foreach(lambda x:self.write_to_kineses(x)))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        # Write anomalies to dynamodb
+        json_dstream.foreachRDD(lambda rdd: rdd.foreach(lambda x: self.write_to_kineses(x)))
 
         # counts = dstreamRecords.map(lambda word: (str(uuid.uuid4()), 1)) \
         #     .reduceByKey(lambda a, b: a + b)
         # counts.pprint()
-
-
 
         # pythonSchema = StructType() \
         #     .add("awsRegion", StringType()) \
@@ -226,18 +203,15 @@ class CloudTrailLogProcessor:
         #
         # dstreamRecords.foreachRDD(process_rdd)
 
-
- # \
- #        # .add("timestamp", TimestampType())
- #
- #        context = HiveContext(sc)
- #
- #        dataDevicesDF = dstreamRecords \
- #            .selectExpr("cast (data as STRING) jsonData") \
- #            .select(from_json("jsonData", pythonSchema).alias("ctrail")) \
- #            .select("ctrail.*") \
- #            .groupby("sourceIPAddress")
- #
- #        dataDevicesDF.pprint()
-
-
+# \
+#        # .add("timestamp", TimestampType())
+#
+#        context = HiveContext(sc)
+#
+#        dataDevicesDF = dstreamRecords \
+#            .selectExpr("cast (data as STRING) jsonData") \
+#            .select(from_json("jsonData", pythonSchema).alias("ctrail")) \
+#            .select("ctrail.*") \
+#            .groupby("sourceIPAddress")
+#
+#        dataDevicesDF.pprint()

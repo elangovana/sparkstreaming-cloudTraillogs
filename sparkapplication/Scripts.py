@@ -40,8 +40,15 @@ client.create_stream(
     StreamName='CloudTrailEventStream'
     , ShardCount= 2)
 
+client = boto3.client('kinesis')
+client.create_stream(
+    StreamName='ReproducedCloudTrailEventStream'
+    , ShardCount= 2)
+
 #create stream to write to dd
 client.create_stream(
     StreamName='AnomalyEventStream',
     ShardCount = 1)
+
+
 

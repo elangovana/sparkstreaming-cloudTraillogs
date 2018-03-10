@@ -57,6 +57,7 @@
 from __future__ import print_function
 import json
 import uuid
+import boto3.session
 
 from boto import dynamodb
 import boto3
@@ -155,7 +156,7 @@ class CloudTrailLogProcessor:
         # TODO Hardcode names for stream
         stream_name = "AnomalyEventStream"
 
-        client = boto3.client('kinesis')
+        client = self.get_kinesis_client()
 
         item = {'id': {'S': hash_key}
             , 'detectedOnTimestamp': {'N': detectOnTimeStamp}
@@ -169,7 +170,31 @@ class CloudTrailLogProcessor:
             SequenceNumberForOrdering=detectOnTimeStamp
         )
 
+    def get_kinesis_client(self):
+        session = boto3.session.Session(region_name='us-east-1')
+        client = session.client('kinesis', region_name='us-east-1',
+                                endpoint_url="https://kinesis.us-east-1.amazonaws.com")
+        return client
+
+    def write_to_kineses_raw(self, raw):
+
+        # TODO Hardcode names for stream
+        stream_name = "ReproducedCloudTrailEventStream"
+
+        client = self.get_kinesis_client()
+
+
+        client.put_record(
+            StreamName=stream_name,
+            Data=raw,
+            PartitionKey=str(uuid.uuid4()),
+            SequenceNumberForOrdering=str(int(time.time()))
+        )
+
     def process(self, sc, ssc, dstreamRecords):
+        #writ to originalStream
+        dstreamRecords.foreachRDD(lambda rdd: rdd.foreach(lambda x: self.write_to_kineses_raw(x)))
+
         # TODO filter for count > threshold
         json_dstream = dstreamRecords.map(lambda v: json.loads(v)). \
             map(lambda ct: (ct['sourceIPAddress'], 1)). \

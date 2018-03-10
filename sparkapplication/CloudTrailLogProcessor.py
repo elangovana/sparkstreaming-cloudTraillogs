@@ -121,7 +121,7 @@ class CloudTrailLogProcessor:
         #
         # DataNotFoundError: Unable to load for endpoints
 
-        item.pprint()
+
         # ip = item[0]
         # hits = item[1]
         ip = "1.0.0.0"

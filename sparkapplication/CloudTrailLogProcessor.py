@@ -156,19 +156,22 @@ class CloudTrailLogProcessor:
         # TODO Hardcode names for stream
         stream_name = "AnomalyEventStream"
 
-        client = self.get_kinesis_client()
+
 
         item = {'id': {'S': hash_key}
             , 'detectedOnTimestamp': {'N': detectOnTimeStamp}
             , 'sourceIPAddress': {'S': ip}
             , 'count': {'N': str(hits)}}
 
-        client.put_record(
-            StreamName=stream_name,
-            Data=json.dumps(item),
-            PartitionKey=str(uuid.uuid4()),
-            SequenceNumberForOrdering=detectOnTimeStamp
-        )
+        print(item)
+
+        # client = self.get_kinesis_client()
+        # client.put_record(
+        #     StreamName=stream_name,
+        #     Data=json.dumps(item),
+        #     PartitionKey=str(uuid.uuid4()),
+        #     SequenceNumberForOrdering=detectOnTimeStamp
+        # )
 
     def get_kinesis_client(self):
         session = boto3.session.Session(region_name='us-east-1')
@@ -181,15 +184,17 @@ class CloudTrailLogProcessor:
         # TODO Hardcode names for stream
         stream_name = "ReproducedCloudTrailEventStream"
 
-        client = self.get_kinesis_client()
+        print(raw)
 
-
-        client.put_record(
-            StreamName=stream_name,
-            Data=raw,
-            PartitionKey=str(uuid.uuid4()),
-            SequenceNumberForOrdering=str(int(time.time()))
-        )
+        # client = self.get_kinesis_client()
+        #
+        #
+        # client.put_record(
+        #     StreamName=stream_name,
+        #     Data=raw,
+        #     PartitionKey=str(uuid.uuid4()),
+        #     SequenceNumberForOrdering=str(int(time.time()))
+        # )
 
     def process(self, sc, ssc, dstreamRecords):
         #writ to originalStream

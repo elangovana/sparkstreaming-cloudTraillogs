@@ -111,6 +111,44 @@ class CloudTrailLogProcessor:
         )
         dynmodb_item.put()
 
+    def write_to_dynamodb_boto2(self, item):
+        # TODO hardcode region name to fix
+        # Bug:  boto3.client('dynamodb' requires api version & region name, else I get the error
+        #     File
+        #     "/tmp/pip-build-KYLsEh/botocore/botocore/loaders.py", line
+        #     424, in load_data
+        #     raise DataNotFoundError(data_path=name)
+        #
+        # DataNotFoundError: Unable to load for endpoints
+
+        item.pprint()
+        # ip = item[0]
+        # hits = item[1]
+        ip = "1.0.0.0"
+        hits = 0
+
+        print("ip {} hit {}", ip, hits)
+
+
+
+        conn = dynamodb.connect_to_region(
+            'us-east-1')
+
+        table = conn.get_table('CloudTrailAnomaly')
+        item_data = {
+            'sourceIPAddress': ip,
+            'count': hits
+        }
+        dynmodb_item = table.new_item(
+            # Our hash key is 'forum'
+            hash_key=str(uuid.uuid4()),
+            # Our range key
+            range_key=str(int(time.time())),
+            # This has the
+            attrs=item_data
+        )
+        dynmodb_item.put()
+
     def write_to_kineses(self, rdd):
         ip = "1.0.0.0"
         hits = 0
@@ -142,7 +180,7 @@ class CloudTrailLogProcessor:
         json_dstream.pprint()
 
         #Write anomalies to dynamodb
-        json_dstream.foreachRDD(lambda rdd: rdd.foreach(lambda x:self.write_to_kineses(x)))
+        json_dstream.foreachRDD(lambda rdd: rdd.foreach(lambda x:self.write_to_dynamodb_boto2(x)))
 
 
 

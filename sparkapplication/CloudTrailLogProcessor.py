@@ -59,16 +59,74 @@ import json
 import uuid
 
 from boto import  dynamodb
+import boto3
 import time
 from pyspark import HiveContext, SQLContext
 from pyspark.sql.functions import from_json
 from pyspark.sql.types import StructType, StringType
-
+from pyspark.streaming.kinesis import KinesisUtils
 
 class CloudTrailLogProcessor:
 
+    def write_to_dynamodb(self, item):
+        # TODO hardcode region name to fix
+        # Bug:  boto3.client('dynamodb' requires api version & region name, else I get the error
+        #     File
+        #     "/tmp/pip-build-KYLsEh/botocore/botocore/loaders.py", line
+        #     424, in load_data
+        #     raise DataNotFoundError(data_path=name)
+        #
+        # DataNotFoundError: Unable to load for endpoints
 
+        item.pprint()
+        # ip = item[0]
+        # hits = item[1]
+        ip = "1.0.0.0"
+        hits = 0
 
+        print("ip {} hit {}", ip, hits)
+
+        # client = boto3.client('dynamodb',  region_name='us-east-1', api_version='2012-08-10')
+        # client.put_item(TableName='CloudTrailAnomaly', Item={'id': {'S': str(uuid.uuid4())}
+        #     , 'timestamp': {'N': str(int(time.time()))}
+        #     , 'sourceIPAddress': {'S': ip}
+        #     , 'count': {'N': str(hits)}
+        #                                                      })
+
+        conn = dynamodb.connect_to_region(
+            'us-east-1')
+
+        table = conn.get_table('CloudTrailAnomaly')
+        item_data = {
+            'sourceIPAddress': ip,
+            'count': hits
+        }
+        dynmodb_item = table.new_item(
+            # Our hash key is 'forum'
+            hash_key=str(uuid.uuid4()),
+            # Our range key
+            range_key=str(int(time.time())),
+            # This has the
+            attrs=item_data
+        )
+        dynmodb_item.put()
+
+    def write_to_kineses(self, rdd):
+        ip = "1.0.0.0"
+        hits = 0
+        client = boto3.client('kinesis')
+        Item = {'id': {'S': str(uuid.uuid4())}
+                    , 'detectedOnTimestamp': {'N': str(int(time.time()))}
+                    , 'sourceIPAddress': {'S': ip}
+                    , 'count': {'N': str(hits)}}
+
+        response = client.put_record(
+            StreamName='string',
+            Data=b'bytes',
+            PartitionKey='string',
+            ExplicitHashKey='string',
+            SequenceNumberForOrdering='string'
+        )
 
 
     def process(self, sc, ssc, dstreamRecords):
@@ -78,52 +136,14 @@ class CloudTrailLogProcessor:
             map(lambda ct: (ct['sourceIPAddress'], 1)). \
             reduceByKeyAndWindow(lambda  a, b: a+b, invFunc=None, windowDuration=30, slideDuration=30)
 
-        def write_to_dynamodb(item):
-            #TODO hardcode region name to fix
-            #Bug:  boto3.client('dynamodb' requires api version & region name, else I get the error
-            #     File
-            #     "/tmp/pip-build-KYLsEh/botocore/botocore/loaders.py", line
-            #     424, in load_data
-            #     raise DataNotFoundError(data_path=name)
-            #
-            # DataNotFoundError: Unable to load for endpoints
 
-            item.pprint()
-            # ip = item[0]
-            # hits = item[1]
-            ip ="1.0.0.0"
-            hits=0
 
-            print("ip {} hit {}", ip, hits)
 
-            # client = boto3.client('dynamodb',  region_name='us-east-1', api_version='2012-08-10')
-            # client.put_item(TableName='CloudTrailAnomaly', Item={'id': {'S': str(uuid.uuid4())}
-            #     , 'timestamp': {'N': str(int(time.time()))}
-            #     , 'sourceIPAddress': {'S': ip}
-            #     , 'count': {'N': str(hits)}
-            #                                                      })
 
-            conn = dynamodb.connect_to_region(
-                'us-east-1')
-
-            table = conn.get_table('CloudTrailAnomaly')
-            item_data = {
-                'sourceIPAddress': ip,
-                'count': hits
-            }
-            dynmodb_item = table.new_item(
-                # Our hash key is 'forum'
-                hash_key=str(uuid.uuid4()),
-                # Our range key
-                range_key=str(int(time.time())),
-                # This has the
-                attrs=item_data
-            )
-            dynmodb_item.put()
 
 
         #Write anomalies to dynamodb
-        json_dstream.foreachRDD(lambda rdd: rdd.foreach(write_to_dynamodb))
+        json_dstream.foreachRDD(lambda rdd: rdd.foreach(lambda x:self.write_to_kineses(x)))
 
 
 

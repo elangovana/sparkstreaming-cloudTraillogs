@@ -1,7 +1,8 @@
 import boto3
 
 #Setup dynamodb
-dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
+region = 'us-east-1'
+dynamodb = boto3.resource('dynamodb', region_name= region)
 table = dynamodb.create_table(
     TableName='CloudTrailAnomaly',
     KeySchema=[
@@ -32,3 +33,15 @@ table = dynamodb.create_table(
         'WriteCapacityUnits': 10
     }
 )
+
+#Create kinese stream to receive cloud* logs
+client = boto3.client('kinesis')
+client.create_stream(
+    StreamName='CloudTrailEventStream'
+    , ShardCount= 2)
+
+#create stream to write to dd
+client.create_stream(
+    StreamName='AnomalyEventStream',
+    ShardCount = 1)
+

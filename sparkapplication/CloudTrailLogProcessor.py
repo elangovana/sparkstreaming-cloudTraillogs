@@ -165,7 +165,6 @@ class CloudTrailLogProcessor:
             StreamName=stream_name,
             Data=json.dumps(item),
             PartitionKey=str(uuid.uuid4()),
-            ExplicitHashKey=hash_key,
             SequenceNumberForOrdering=detectOnTimeStamp
         )
 

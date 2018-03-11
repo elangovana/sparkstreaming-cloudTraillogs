@@ -7,7 +7,7 @@ from sparkapplication.CloudTrailLogProcessor import CloudTrailLogProcessor
 
 class KinesisConsumer:
     def run(self, appName, streamName, endpointUrl, regionName):
-        sc = SparkContext(appName="PythonStreamingKinesisWordCountAsl")
+        sc = SparkContext(appName="PythonStreamingKinesisAnomalyDetection")
         print("Initialised SC")
         #TODO: log warn and above only
         logger = sc._jvm.org.apache.log4j

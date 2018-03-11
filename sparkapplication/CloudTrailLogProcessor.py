@@ -134,7 +134,7 @@ class CloudTrailLogProcessor:
         return client
 
     def _getSparkSessionInstance(self, sparkConf):
-        if ("sparkSessionSingletonInstance" not in globals()):
+        if "sparkSessionSingletonInstance" not in globals():
             globals()["sparkSessionSingletonInstance"] = SparkSession \
                 .builder \
                 .config(conf=sparkConf) \

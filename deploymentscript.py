@@ -51,4 +51,5 @@ client.create_stream(
     ShardCount = 1)
 
 
-
+# start up scripts
+#sudo pip-3.4 install boto3

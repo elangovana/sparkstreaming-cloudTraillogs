@@ -69,47 +69,42 @@ class CloudTrailLogProcessor:
             , 'sourceIPAddress': {'S': ip}
             , 'count': {'N': str(hits)}}
 
-
-
-        # client = self.get_kinesis_client()
-        # client.put_record(
-        #     StreamName=stream_name,
-        #     Data=json.dumps(item),
-        #     PartitionKey=str(uuid.uuid4()),
-        #     SequenceNumberForOrdering=detectOnTimeStamp
-        # )
+        client = self._get_kinesis_client()
+        client.put_record(
+            StreamName=stream_name,
+            Data=json.dumps(item),
+            PartitionKey=hash_key,
+            SequenceNumberForOrdering=detectOnTimeStamp
+        )
 
     def write_orginial_data_kineses(self, raw):
         # TODO Hardcode names for stream
         stream_name = "ReproducedCloudTrailEventStream"
 
-        print(raw)
+        client = self._get_kinesis_client()
 
-        # client = self.get_kinesis_client()
-        #
-        #
-        # client.put_record(
-        #     StreamName=stream_name,
-        #     Data=raw,
-        #     PartitionKey=str(uuid.uuid4()),
-        #     SequenceNumberForOrdering=str(int(time.time()))
-        # )
+        client.put_record(
+            StreamName=stream_name,
+            Data=raw,
+            PartitionKey=str(uuid.uuid4()),
+            SequenceNumberForOrdering=str(int(time.time()))
+        )
 
-#TODO, this doesnot work,
+    # TODO, this doesnot work,
     def detect_anomaly_withsql(self, sc, ssc, dstream):
         # Apply windows
         dstream_window = dstream.window(windowDuration=30, slideDuration=30)
 
         # Get just the source ip address from the json
-        accumulated_dstream = dstream_window\
+        accumulated_dstream = dstream_window \
             .map(lambda v: json.loads(v)) \
             .map(lambda j: Row(j['sourceIPAddress'], j['awsRegion'])).filter()
 
         accumulated_dstream.pprint()
 
-        #http: // spark.apache.org / docs / latest / structured - streaming - programming - guide.html
+        # http: // spark.apache.org / docs / latest / structured - streaming - programming - guide.html
         # Get the singleton instance of SparkSession
-        #spark = self._getSparkSessionInstance(row_rdd.context().getconf())
+        # spark = self._getSparkSessionInstance(row_rdd.context().getconf())
         spark = self._getSparkSessionInstance(sc._conf)
 
         # create dataframe from rdd
@@ -128,21 +123,19 @@ class CloudTrailLogProcessor:
         dstream_window = dstream.window(windowDuration=30, slideDuration=30)
 
         # Group by by IP & count
-        dstream_window = dstream\
+        dstream_window = dstream \
             .map(lambda v: json.loads(v)) \
             .map(lambda ct: (ct['sourceIPAddress'], 1)) \
             .reduceByKeyAndWindow(lambda a, b: a + b, invFunc=None, windowDuration=30, slideDuration=30)
 
         dstream_window.pprint()
 
-        #Anomalythreshold 3
-        anomalies = dstream_window.filter(lambda t : t[1] > 2)
+        # Anomalythreshold 3
+        anomalies = dstream_window.filter(lambda t: t[1] > 2)
         anomalies.pprint()
 
         # send anomalies to kineses
         anomalies.foreachRDD(lambda rdd: rdd.foreach(lambda x: self.write_anomaly_kineses(x)))
-
-
 
     def process(self, sc, ssc, dstreamRecords):
         # write to original data back to a different stream

@@ -142,6 +142,7 @@ class CloudTrailLogProcessor:
         self.detect_anomaly(sc, ssc, dstreamRecords)
 
     def _get_kinesis_client(self):
+        #TODO use the standapproach for boto3session
         session = boto3.session.Session(region_name='us-east-1')
         client = session.client('kinesis', region_name='us-east-1',
                                 endpoint_url="https://kinesis.us-east-1.amazonaws.com")

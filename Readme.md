@@ -4,12 +4,12 @@
 
 ## Steps to run
 #####List the latest builds
-aws s3 ls s3://aegovan-spark --recursive | sort | tail -1
+aws s3 ls s3://aegovan-spark/builds/ --recursive | sort | tail -1
 
 #####Download the latest build
 mkdir buildartifacts
 
-aws s3 cp s3://aegovan-spark/<path>/SparkApplicationBuildArtifacts.zip ~/buildartifacts
+aws s3 cp s3://aegovan-spark/builds/<path>/SparkApplicationBuildArtifacts.zip ~/buildartifacts
 
 #####Set up files 
 unzip ~/buildartifacts/SparkApplicationBuildArtifacts.zip -d deployfiles

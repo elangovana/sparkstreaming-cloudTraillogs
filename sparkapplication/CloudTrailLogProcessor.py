@@ -95,7 +95,7 @@ class CloudTrailLogProcessor:
         #     SequenceNumberForOrdering=str(int(time.time()))
         # )
 
-    def detect_anomaly(self, sc, dstream):
+    def detect_anomaly(self, sc, ssc, dstream):
         # Apply windows
         rdd = dstream.window(windowDuration=30, slideDuration=30)
 
@@ -125,7 +125,7 @@ class CloudTrailLogProcessor:
         dstreamRecords.foreachRDD(lambda rdd: rdd.foreach(lambda x: self.write_orginial_data_kineses(x)))
 
         # detect anomalies
-        self.detect_anomaly(dstreamRecords)
+        self.detect_anomaly(sc, ssc, dstreamRecords)
 
     def _get_kinesis_client(self):
         session = boto3.session.Session(region_name='us-east-1')

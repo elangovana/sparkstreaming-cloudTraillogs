@@ -1,43 +1,8 @@
 #
 
 """
-  Consumes messages from a Amazon Kinesis streams and does wordcount.
+  Detects anomalies and writes them back to a kinesis streams
 
-  This example spins up 1 Kinesis Receiver per shard for the given stream.
-  It then starts pulling from the last checkpointed sequence number of the given stream.
-
-  Usage: kinesis_wordcount_asl.py <app-name> <stream-name> <endpoint-url> <region-name>
-    <app-name> is the name of the consumer app, used to track the read data in DynamoDB
-    <stream-name> name of the Kinesis stream (ie. mySparkStream)
-    <endpoint-url> endpoint of the Kinesis service
-      (e.g. https://kinesis.us-east-1.amazonaws.com)
-
-
-  Example:
-      # export AWS keys if necessary
-      $ export AWS_ACCESS_KEY_ID=<your-access-key>
-      $ export AWS_SECRET_KEY=<your-secret-key>
-
-      # run the example
-      $ bin/spark-submit -jar external/kinesis-asl/target/scala-*/\
-        spark-streaming-kinesis-asl-assembly_*.jar \
-        external/kinesis-asl/src/main/python/examples/streaming/kinesis_wordcount_asl.py \
-        myAppName mySparkStream https://kinesis.us-east-1.amazonaws.com
-
-  There is a companion helper class called KinesisWordProducerASL which puts dummy data
-  onto the Kinesis stream.
-
-  This code uses the DefaultAWSCredentialsProviderChain to find credentials
-  in the following order:
-      Environment Variables - AWS_ACCESS_KEY_ID and AWS_SECRET_KEY
-      Java System Properties - aws.accessKeyId and aws.secretKey
-      Credential profiles file - default location (~/.aws/credentials) shared by all AWS SDKs
-      Instance profile credentials - delivered through the Amazon EC2 metadata service
-  For more information, see
-      http://docs.aws.amazon.com/AWSSdkDocsJava/latest/DeveloperGuide/credentials.html
-
-  See http://spark.apache.org/docs/latest/streaming-kinesis-integration.html for more details on
-  the Kinesis Spark Streaming integration.
 """
 from __future__ import print_function
 import json
@@ -77,6 +42,7 @@ class CloudTrailLogProcessor:
             SequenceNumberForOrdering=detectOnTimeStamp
         )
 
+    #TODO might not need this code, check if kineses to kineses stream "copy" is possible
     def write_orginial_data_kineses(self, raw):
         # TODO Hardcode names for stream
         stream_name = "ReproducedCloudTrailEventStream"
@@ -90,7 +56,7 @@ class CloudTrailLogProcessor:
             SequenceNumberForOrdering=str(int(time.time()))
         )
 
-    # TODO, this doesnot work,
+    # TODO remove this,as this does not work as kinese connector doesnt create df,
     def detect_anomaly_withsql(self, sc, ssc, dstream):
         # Apply windows
         dstream_window = dstream.window(windowDuration=30, slideDuration=30)

@@ -121,7 +121,7 @@ class CloudTrailLogProcessor:
         anomalies.foreach(lambda a: self.write_anomaly_kineses(a))
 
     def process(self, sc, ssc, dstreamRecords):
-        # write to originalStream
+        # write to original data back to a different stream
         dstreamRecords.foreachRDD(lambda rdd: rdd.foreach(lambda x: self.write_orginial_data_kineses(x)))
 
         # detect anomalies

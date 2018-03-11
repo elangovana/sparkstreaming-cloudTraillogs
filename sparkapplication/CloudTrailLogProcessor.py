@@ -136,7 +136,7 @@ class CloudTrailLogProcessor:
         dstream_window.pprint()
 
         #Anomalythreshold 3
-        anomalies = dstream.filter(lambda t : t[1] > 1)
+        anomalies = dstream_window.filter(lambda t : t[1] > 2)
         anomalies.pprint()
 
         # send anomalies to kineses

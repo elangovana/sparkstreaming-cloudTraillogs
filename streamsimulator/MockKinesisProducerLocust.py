@@ -65,7 +65,7 @@ class MockKinesisProducer(TaskSet):
     def put_data(self):
         # TODO: Fix hardcoded region & stream
         region = "us-east-1"
-        stream_name = "myStream"
+        stream_name = "CloudTrailEventStream"
         conn = kinesis.connect_to_region(region_name=region)
         try:
             # Check stream status

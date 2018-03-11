@@ -24,4 +24,4 @@ locust -f deployfiles/streamsimulator/MockKinesisProducerLocust.py --no-web -c 1
 #####Start spark job
 cd deployfiles
 
-spark-submit  --packages org.apache.spark:spark-streaming-kinesis-asl_2.11:2.3.0 --archives boto3.zip#boto3,botocore.zip#botocore,boto.zip#boto,sparkapplication.zip#sparkapplication  main.py mydemoapp20180302 myStream https://kinesis.us-east-1.amazonaws.com us-east-1
+spark-submit  --packages org.apache.spark:spark-streaming-kinesis-asl_2.11:2.3.0 --archives boto3.zip#boto3,botocore.zip#botocore,boto.zip#boto,sparkapplication.zip#sparkapplication  main.py mydemoapp20180302 CloudTrailEventStream https://kinesis.us-east-1.amazonaws.com us-east-1

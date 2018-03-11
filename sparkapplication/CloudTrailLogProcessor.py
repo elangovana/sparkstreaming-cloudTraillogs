@@ -119,9 +119,6 @@ class CloudTrailLogProcessor:
         anomalies.foreach(lambda a: self.write_anomaly_kineses(a))
 
     def detect_anomaly(self, sc, ssc, dstream):
-        # Apply windows
-        dstream_window = dstream.window(windowDuration=30, slideDuration=30)
-
         # Group by by IP & count
         dstream_window = dstream \
             .map(lambda v: json.loads(v)) \

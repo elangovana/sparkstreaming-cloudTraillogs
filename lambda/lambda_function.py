@@ -2,20 +2,27 @@ import boto3
 import uuid
 import time
 import base64
-
+import json
 def lambda_handler(event, context):
     for record in event['Records']:
        #Kinesis data is base64 encoded so decode here
        payload=base64.b64decode(record["kinesis"]["data"])
        print("Decoded payload: " + str(payload))
-    #write_to_lambda('1.0.0.1', '5')
+       write_to_dynamodb(json.loads(str(payload)))
     return 'Hello from Lambda'
 
 
-def write_to_lambda(ip, hits):
+
+
+def write_to_dynamodb(json_payload):
+    sourceIPAddress=json_payload["sourceIPAddress"]
+    hits=json_payload["count"]
+    detectedOnTimestamp=json_payload["detectedOnTimestamp"]
+    id=json_payload["id"]
 
     client = boto3.client('dynamodb',  region_name='us-east-1', api_version='2012-08-10')
-    client.put_item(TableName='CloudTrailAnomaly', Item={'id': {'S': str(uuid.uuid4())}
+    client.put_item(TableName='CloudTrailAnomaly', Item={'id': {'S': id}
         , 'timestamp': {'N': str(int(time.time()))}
-        , 'sourceIPAddress': {'S': ip}
-        , 'count': {'N': str(hits)}})
+        , 'sourceIPAddress': {'S': sourceIPAddress}
+        , 'count': {'N': str(hits)}
+        , 'detectedOnTimestamp':{'N':detectedOnTimestamp}})

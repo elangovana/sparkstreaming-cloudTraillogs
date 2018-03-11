@@ -8,9 +8,11 @@ phases:
       - pip install -U -r sparkapplication/requirements.txt -t ./libs
       - mkdir ./dist
       - cp sparkapplication/main.py ./dist
-      - cp streamsimulator/* ./dist
-      - python -m  zipfile -c jobs.zip  sparkapplication && mv jobs.zip ./dist/jobs.zip
-      - python -m  zipfile -c libs.zip ./libs/* && mv libs.zip ./dist/libs.zip
+      - cp streamsimulator ./dist
+      - python -m  zipfile -c ./dist/sparkapplication.zip  sparkapplication/*
+      - python -m  zipfile -c ./dist/boto3.zip ./libs/boto3/*
+      - python -m  zipfile -c ./dist/boto.zip ./libs/boto/*
+      - python -m  zipfile -c ./dist/botocore.zip ./libs/botocore/*
   post_build:
     commands:
       - echo Build completed on `date`

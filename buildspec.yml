@@ -15,7 +15,7 @@ phases:
       - python -m  zipfile -c ./dist/botocore.zip ./libs/botocore/*
   post_build:
     commands:
-      - echo The following files be packaged:
+      - echo The following files be packaged
       - ls -lr dist
       - echo Build completed on `date`
 

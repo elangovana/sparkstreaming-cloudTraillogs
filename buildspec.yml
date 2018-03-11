@@ -7,7 +7,7 @@ phases:
       - mkdir ./libs
       - pip install -U -r sparkapplication/requirements.txt -t ./libs
       - mkdir ./dist
-      - cp sparkapplication/main.py ./dist
+      - cp main.py ./dist
       - cp -R streamsimulator ./dist
       - python -m  zipfile -c ./dist/sparkapplication.zip  sparkapplication/*
       - python -m  zipfile -c ./dist/boto3.zip ./libs/boto3/*
@@ -17,5 +17,5 @@ phases:
     commands:
       - echo Build completed on `date`
 artifacts:
-  files:
-    - ./dist/*.*
+  base-directory:
+    - ./dist

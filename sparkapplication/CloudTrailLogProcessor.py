@@ -95,23 +95,25 @@ class CloudTrailLogProcessor:
         #     SequenceNumberForOrdering=str(int(time.time()))
         # )
 
-    def detect_anomaly(self, sc, ssc, dstream):
+#TODO, this doesnot work,
+    def detect_anomaly_withsql(self, sc, ssc, dstream):
         # Apply windows
-        rdd = dstream.window(windowDuration=30, slideDuration=30)
+        dstream_window = dstream.window(windowDuration=30, slideDuration=30)
 
         # Get just the source ip address from the json
-        row_rdd = rdd\
+        accumulated_dstream = dstream_window\
             .map(lambda v: json.loads(v)) \
-            .map(lambda j: Row(j['sourceIPAddress']))
+            .map(lambda j: Row(j['sourceIPAddress'], j['awsRegion'])).filter()
 
-        row_rdd.pprint()
+        accumulated_dstream.pprint()
 
+        #http: // spark.apache.org / docs / latest / structured - streaming - programming - guide.html
         # Get the singleton instance of SparkSession
         #spark = self._getSparkSessionInstance(row_rdd.context().getconf())
         spark = self._getSparkSessionInstance(sc._conf)
 
         # create dataframe from rdd
-        df_ip = spark.createDataFrame(row_rdd)
+        df_ip = spark.createDataFrame(accumulated_dstream)
         df_ip.createOrReplaceTempView("events")
 
         # Anomaly when more then N (10) hits per source IP
@@ -120,6 +122,27 @@ class CloudTrailLogProcessor:
 
         # send anomalies to kineses
         anomalies.foreach(lambda a: self.write_anomaly_kineses(a))
+
+    def detect_anomaly(self, sc, ssc, dstream):
+        # Apply windows
+        dstream_window = dstream.window(windowDuration=30, slideDuration=30)
+
+        # Group by by IP & count
+        dstream_window = dstream\
+            .map(lambda v: json.loads(v)) \
+            .map(lambda ct: (ct['sourceIPAddress'], 1)) \
+            .reduceByKeyAndWindow(lambda a, b: a + b, invFunc=None, windowDuration=30, slideDuration=30)
+
+        dstream_window.pprint()
+
+        #Anomalythreshold 3
+        anomalies = dstream.filter(lambda t : t[1] > 3)
+        anomalies.pprint()
+
+        # send anomalies to kineses
+        anomalies.foreachRDD(lambda rdd: rdd.foreach(lambda x: self.write_anomaly_kineses(x)))
+
+
 
     def process(self, sc, ssc, dstreamRecords):
         # write to original data back to a different stream

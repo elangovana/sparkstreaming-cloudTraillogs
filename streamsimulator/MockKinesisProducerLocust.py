@@ -92,8 +92,8 @@ class MockKinesisProducer(TaskSet):
 
         json_data = {
     "awsRegion": "us-east-2",
-    "sourceIPAddress": ip
-
+    "sourceIPAddress": ip,
+    "eventTime": "2016-07-14T19:15:45Z"
 }
 
 

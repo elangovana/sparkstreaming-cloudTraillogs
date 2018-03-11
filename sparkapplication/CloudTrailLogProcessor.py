@@ -107,7 +107,7 @@ class CloudTrailLogProcessor:
         row_rdd.pprint()
 
         # Get the singleton instance of SparkSession
-        spark = self._getSparkSessionInstance(row_rdd.context().getconf())
+        spark = self._getSparkSessionInstance(row_rdd.context.getconf())
 
         # create dataframe from rdd
         df_ip = spark.createDataFrame(row_rdd)

@@ -1,7 +1,7 @@
 spark-submit  --packages org.apache.spark:spark-streaming-kinesis-asl_2.11:2.1.2 main.py myStream myStream https://kinesis.us-east-1.amazonaws.com us-east-1
 
 
-#spark-submit  --packages org.apache.spark:spark-streaming-kinesis-asl_2.11:2.3.0 --py-files buildartifacts/dist/jobs.zip,buildartifacts/dist/libs.zip  buildartifacts/dist/main.py cloudtrailmockAppNewSQlA myStream https://kinesis.us-east-1.amazonaws.com us-east-1
+#spark-submit  --packages org.apache.spark:spark-streaming-kinesis-asl_2.11:2.3.0 --py-files buildartifacts/dist/jobs.zip,buildartifacts/dist/libs.zip  buildartifacts/dist/main.py cloudtrailmockAppNewSQlAB myStream https://kinesis.us-east-1.amazonaws.com us-east-1
 
 
 
@@ -12,7 +12,7 @@ virtualenv demo_env
 virtualenv --relocatable  demo_env
 source demo_env/bin/activate
 PYSPARK_PYTHON=demo_env/bin/python
-spark-submit --conf spark.yarn.appMasterEnv.PYSPARK_PYTHON=demo_env/bin/python --master yarn-cluster --archives buildartifacts/dist/jobs.zip#sparkapplication  buildartifacts/dist/main.py
+spark-submit --conf spark.yarn.appMasterEnv.PYSPARK_PYTHON=demo_env/bin/python --master yarn-cluster --archives boto3.zip#boto3,botocore.zip#botocore,boto.zip#boto --py-files buildartifacts/dist/jobs.zip,buildartifacts/dist/libs.zip  buildartifacts/dist/main.py
 
 
 zip -r demo_env.zip demo_env

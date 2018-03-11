@@ -1,19 +1,4 @@
 #
-# Licensed to the Apache Software Foundation (ASF) under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
-#
-#    http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
 
 """
   Consumes messages from a Amazon Kinesis streams and does wordcount.
@@ -58,7 +43,8 @@ from __future__ import print_function
 import json
 import uuid
 import boto3.session
-
+from pyspark.sql import SparkSession, Row
+from pyspark.sql.window import Window
 from boto import dynamodb
 import boto3
 import time
@@ -70,85 +56,7 @@ from pyspark.streaming.kinesis import KinesisUtils
 
 class CloudTrailLogProcessor:
 
-    def write_to_dynamodb(self, item):
-        # TODO hardcode region name to fix
-        # Bug:  boto3.client('dynamodb' requires api version & region name, else I get the error
-        #     File
-        #     "/tmp/pip-build-KYLsEh/botocore/botocore/loaders.py", line
-        #     424, in load_data
-        #     raise DataNotFoundError(data_path=name)
-        #
-        # DataNotFoundError: Unable to load for endpoints
-
-        item.pprint()
-        # ip = item[0]
-        # hits = item[1]
-        ip = "1.0.0.0"
-        hits = 0
-
-        print("ip {} hit {}", ip, hits)
-
-        # client = boto3.client('dynamodb',  region_name='us-east-1', api_version='2012-08-10')
-        # client.put_item(TableName='CloudTrailAnomaly', Item={'id': {'S': str(uuid.uuid4())}
-        #     , 'timestamp': {'N': str(int(time.time()))}
-        #     , 'sourceIPAddress': {'S': ip}
-        #     , 'count': {'N': str(hits)}
-        #                                                      })
-
-        conn = dynamodb.connect_to_region(
-            'us-east-1')
-
-        table = conn.get_table('CloudTrailAnomaly')
-        item_data = {
-            'sourceIPAddress': ip,
-            'count': hits
-        }
-        dynmodb_item = table.new_item(
-            # Our hash key is 'forum'
-            hash_key=str(uuid.uuid4()),
-            # Our range key
-            range_key=str(int(time.time())),
-            # This has the
-            attrs=item_data
-        )
-        dynmodb_item.put()
-
-    def write_to_dynamodb_boto2(self, item):
-        # TODO hardcode region name to fix
-        # Bug:  boto3.client('dynamodb' requires api version & region name, else I get the error
-        #     File
-        #     "/tmp/pip-build-KYLsEh/botocore/botocore/loaders.py", line
-        #     424, in load_data
-        #     raise DataNotFoundError(data_path=name)
-        #
-        # DataNotFoundError: Unable to load for endpoints
-
-        # ip = item[0]
-        # hits = item[1]
-        ip = item[0]
-        hits = item[1]
-
-        print("ip {} hit {}", ip, hits)
-
-        conn = dynamodb.connect_to_region(
-            'us-east-1')
-
-        table = conn.get_table('CloudTrailAnomaly')
-        item_data = {
-            'sourceIPAddress': ip,
-            'count': hits
-        }
-        dynmodb_item = table.new_item(
-            # Our hash key is 'forum'
-            hash_key=str(uuid.uuid4()),
-            # Our range key
-            range_key=str(int(time.time())),
-            # This has the
-            attrs=item_data
-        )
-        dynmodb_item.put()
-
-    def write_to_kineses(self, anomaly_tuple):
+    def write_anomaly_kineses(self, anomaly_tuple):
         ip = anomaly_tuple[0]
         hits = anomaly_tuple[1]
         hash_key = str(uuid.uuid4())
@@ -156,14 +64,12 @@ class CloudTrailLogProcessor:
         # TODO Hardcode names for stream
         stream_name = "AnomalyEventStream"
 
-
-
         item = {'id': {'S': hash_key}
             , 'detectedOnTimestamp': {'N': detectOnTimeStamp}
             , 'sourceIPAddress': {'S': ip}
             , 'count': {'N': str(hits)}}
 
-        print(item)
+
 
         # client = self.get_kinesis_client()
         # client.put_record(
@@ -173,14 +79,7 @@ class CloudTrailLogProcessor:
         #     SequenceNumberForOrdering=detectOnTimeStamp
         # )
 
-    def get_kinesis_client(self):
-        session = boto3.session.Session(region_name='us-east-1')
-        client = session.client('kinesis', region_name='us-east-1',
-                                endpoint_url="https://kinesis.us-east-1.amazonaws.com")
-        return client
-
-    def write_to_kineses_raw(self, raw):
-
+    def write_orginial_data_kineses(self, raw):
         # TODO Hardcode names for stream
         stream_name = "ReproducedCloudTrailEventStream"
 
@@ -196,52 +95,48 @@ class CloudTrailLogProcessor:
         #     SequenceNumberForOrdering=str(int(time.time()))
         # )
 
+    def detect_anomaly(self, sc, dstream):
+        # Apply windows
+        rdd = dstream.window(windowDuration=30, slideDuration=30)
+
+        # Get just the source ip address from the json
+        row_rdd = rdd\
+            .map(lambda v: json.loads(v)) \
+            .map(lambda j: Row(j['sourceIPAddress']))
+
+        row_rdd.pprint()
+
+        # Get the singleton instance of SparkSession
+        spark = self._getSparkSessionInstance(row_rdd.context.getConf())
+
+        # create dataframe from rdd
+        df_ip = spark.createDataFrame(row_rdd)
+        df_ip.createOrReplaceTempView("events")
+
+        # Anomaly when more then N (10) hits per source IP
+        anomalies = spark.sql(
+            "select sourceIPAddress, count(*) as total from events group by sourceIPAddress having count(*) > 10 ")
+
+        # send anomalies to kineses
+        anomalies.foreach(lambda a: self.write_anomaly_kineses(a))
+
     def process(self, sc, ssc, dstreamRecords):
-        #writ to originalStream
-        dstreamRecords.foreachRDD(lambda rdd: rdd.foreach(lambda x: self.write_to_kineses_raw(x)))
+        # write to originalStream
+        dstreamRecords.foreachRDD(lambda rdd: rdd.foreach(lambda x: self.write_orginial_data_kineses(x)))
 
-        # TODO filter for count > threshold
-        json_dstream = dstreamRecords.map(lambda v: json.loads(v)). \
-            map(lambda ct: (ct['sourceIPAddress'], 1)). \
-            reduceByKeyAndWindow(lambda a, b: a + b, invFunc=None, windowDuration=30, slideDuration=30)
+        # detect anomalies
+        self.detect_anomaly(dstreamRecords)
 
-        json_dstream.pprint()
+    def _get_kinesis_client(self):
+        session = boto3.session.Session(region_name='us-east-1')
+        client = session.client('kinesis', region_name='us-east-1',
+                                endpoint_url="https://kinesis.us-east-1.amazonaws.com")
+        return client
 
-        # Write anomalies to dynamodb
-        json_dstream.foreachRDD(lambda rdd: rdd.foreach(lambda x: self.write_to_kineses(x)))
-
-        # counts = dstreamRecords.map(lambda word: (str(uuid.uuid4()), 1)) \
-        #     .reduceByKey(lambda a, b: a + b)
-        # counts.pprint()
-
-        # pythonSchema = StructType() \
-        #     .add("awsRegion", StringType()) \
-        #     .add("sourceIPAddress", StringType())
-        #
-        #
-        # def process_rdd(rdd):
-        #     print(rdd)
-        #     rdd.map(lambda a: str(a)).map(lambda a: from_json(a, pythonSchema).registerAsTable("ctrail"))
-        #     teenagers = sqc.sql("SELECT name FROM ctrail ")
-        #     print(teenagers)
-        #
-        #
-        # #rdd.map(_.split(",")).map(p= > Persons(p(0), p(1).trim.toInt)).registerAsTable("data")
-        #
-        # sqc = SQLContext(sc);
-        #
-        #
-        # dstreamRecords.foreachRDD(process_rdd)
-
-# \
-#        # .add("timestamp", TimestampType())
-#
-#        context = HiveContext(sc)
-#
-#        dataDevicesDF = dstreamRecords \
-#            .selectExpr("cast (data as STRING) jsonData") \
-#            .select(from_json("jsonData", pythonSchema).alias("ctrail")) \
-#            .select("ctrail.*") \
-#            .groupby("sourceIPAddress")
-#
-#        dataDevicesDF.pprint()
+    def _getSparkSessionInstance(self, sparkConf):
+        if ("sparkSessionSingletonInstance" not in globals()):
+            globals()["sparkSessionSingletonInstance"] = SparkSession \
+                .builder \
+                .config(conf=sparkConf) \
+                .getOrCreate()
+        return globals()["sparkSessionSingletonInstance"]

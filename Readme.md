@@ -21,6 +21,8 @@ pip install locust --user
 ######Do this in a separate session or run as background task
 locust -f deployfiles/streamsimulator/MockKinesisProducerLocust.py --no-web -c 10 -r 1
 
+nohup locust -f deployfiles/streamsimulator/MockKinesisProducerLocust.py --no-web -c 10 -r 1 &
+
 #####Start spark job
 cd deployfiles
 

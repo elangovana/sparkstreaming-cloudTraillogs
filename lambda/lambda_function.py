@@ -9,7 +9,7 @@ def lambda_handler(event, context):
        payload=base64.b64decode(record["kinesis"]["data"])
        print("Decoded payload: " + str(payload))
        write_to_dynamodb(json.loads(str(payload)))
-    return 'Hello from Lambda'
+
 
 
 
@@ -19,10 +19,13 @@ def write_to_dynamodb(json_payload):
     hits=json_payload["count"]
     detectedOnTimestamp=json_payload["detectedOnTimestamp"]
     id=json_payload["id"]
-
-    client = boto3.client('dynamodb',  region_name='us-east-1', api_version='2012-08-10')
-    client.put_item(TableName='CloudTrailAnomaly', Item={'id': {'S': id}
+    item = {'id': {'S': id}
         , 'timestamp': {'N': str(int(time.time()))}
         , 'sourceIPAddress': {'S': sourceIPAddress}
         , 'count': {'N': str(hits)}
-        , 'detectedOnTimestamp':{'N':detectedOnTimestamp}})
+        , 'detectedOnTimestamp':{'N':detectedOnTimestamp}
+        }
+
+    client = boto3.client('dynamodb',  region_name='us-east-1', api_version='2012-08-10')
+    client.put_item(TableName='CloudTrailAnomaly', Item=item)
+    print("Wrote to dynamodbmo : " + str(item))

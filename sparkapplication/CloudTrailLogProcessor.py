@@ -32,7 +32,7 @@ class CloudTrailLogProcessor:
         hits = anomaly_tuple[1]
         anomaly_score = anomaly_tuple[2]
         hash_key = str(uuid.uuid4())
-        detectOnTimeStamp = str(int(time.time()))
+        detectOnTimeStamp = int(time.time())
         stream_name = self.anomaly_stream_name
 
         item = {'id': hash_key

@@ -46,7 +46,7 @@ class CloudTrailLogProcessor:
             StreamName=stream_name,
             Data=json.dumps(item),
             PartitionKey=hash_key,
-            SequenceNumberForOrdering=detectOnTimeStamp
+            SequenceNumberForOrdering=str(detectOnTimeStamp)
         )
 
     #TODO might not need this code, check if kineses to kineses stream "copy" is possible

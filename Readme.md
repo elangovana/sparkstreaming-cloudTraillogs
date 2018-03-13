@@ -19,7 +19,7 @@ unzip deployfiles/sparkapplication.zip -d deployfiles/sparkapplication
 #####Set up mock stream simulator
 pip install locust --user
 ######Do this in a separate session or run as background task
-locust -f deployfiles/streamsimulator/MockKinesisProducerLocust.py --no-web -c 1 -r 1
+locust -f deployfiles/streamsimulator/MockKinesisProducerLocust.py --no-web -c 10 -r 1
 
 #####Start spark job
 cd deployfiles

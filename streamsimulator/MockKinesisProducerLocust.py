@@ -91,9 +91,69 @@ class MockKinesisProducer(TaskSet):
             ip = "{}.251.233.{}".format(random.randrange(1,255), random.randrange(1,255))
 
         json_data = {
-    "awsRegion": "us-east-2",
-    "sourceIPAddress": ip,
-    "eventTime": "2016-07-14T19:15:45Z"
+ "version": "0",
+ "id": "708e34ca-87f9-61b4-ba45-fe562ee0902d",
+ "detail-type": "AWS API Call via CloudTrail",
+ "source": "aws.s3",
+ "account": "157997839279",
+ "time": "2018-03-13T04:00:26Z",
+ "region": "us-east-1",
+ "resources": [],
+ "detail": {
+   "eventVersion": "1.05",
+   "userIdentity": {
+     "type": "AssumedRole",
+     "principalId": "AROAJW723CZNOTI6KYLXG:AWSFirehoseToS3",
+     "arn": "arn:aws:sts::157997839279:assumed-role/firehose_delivery_to_S3_role/AWSFirehoseToS3",
+     "accountId": "157997839279",
+     "accessKeyId": "ASIAIXVLJFYEYFKQMVYQ",
+     "sessionContext": {
+       "sessionIssuer": {
+         "type": "Role",
+         "principalId": "AROAJW723CZNOTI6KYLXG",
+         "arn": "arn:aws:iam::157997839279:role/firehose_delivery_to_S3_role",
+         "accountId": "157997839279",
+         "userName": "firehose_delivery_to_S3_role"
+       },
+       "attributes": {
+         "creationDate": "2018-03-13T03:28:55Z",
+         "mfaAuthenticated": "false"
+       }
+     },
+     "invokedBy": "AWS Internal"
+   },
+   "eventTime": "2018-03-13T04:00:26Z",
+   "eventSource": "s3.amazonaws.com",
+   "eventName": "PutObject",
+   "awsRegion": "us-east-1",
+   "sourceIPAddress": ip,
+   "userAgent": "[aws-internal/3]",
+   "requestParameters": {
+     "x-amz-acl": "bucket-owner-full-control",
+     "bucketName": "ganesraj-structured-demo",
+     "key": "rawdata/2018/03/13/03/StructredS3-1-2018-03-13-03-55-25-680033e1-eb0b-4325-a7fe-126fd0985b79"
+   },
+   "responseElements": "",
+   "additionalEventData": {
+     "x-amz-id-2": "hqnAk1J8Osh197y2aNBq7Q7KXuKY/aoxKEYvcRz8efayO8XLRV7wp1Zcl4hcsqm2gNEKxxsEifk="
+   },
+   "requestID": "D58027E774E8DB84",
+   "eventID": "5ff8dee2-6578-4468-a0e0-1c651a1f2a09",
+   "readOnly": False,
+   "resources": [
+     {
+       "type": "AWS::S3::Object",
+       "ARN": "arn:aws:s3:::ganesraj-structured-demo/rawdata/2018/03/13/03/StructredS3-1-2018-03-13-03-55-25-680033e1-eb0b-4325-a7fe-126fd0985b79"
+     },
+     {
+       "accountId": "157997839279",
+       "type": "AWS::S3::Bucket",
+       "ARN": "arn:aws:s3:::ganesraj-structured-demo"
+     }
+   ],
+   "eventType": "AwsApiCall",
+   "recipientAccountId": "157997839279"
+ }
 }
 
 

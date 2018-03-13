@@ -88,7 +88,7 @@ class CloudTrailLogProcessor:
         # Group by by IP & count
         dstream_window = dstream \
             .map(lambda v: json.loads(v)) \
-            .map(lambda ct: (ct['sourceIPAddress'], 1)) \
+            .map(lambda ct: (ct["detail"]['sourceIPAddress'], 1)) \
             .reduceByKeyAndWindow(lambda a, b: a + b, invFunc=None, windowDuration=30, slideDuration=30)
 
         dstream_window.pprint()

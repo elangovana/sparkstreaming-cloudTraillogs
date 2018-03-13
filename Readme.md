@@ -25,7 +25,7 @@ pip install locust --user
 ######Do this in a separate session or run as background task
 
 cd deployfiles/streamsimulator/
-#########Edit config.json for the streamname to write to
+######### *** Edit config.json for the streamname to write to
 locust -f MockKinesisProducerLocust.py --no-web -c 10 -r 1
 nohup locust -f MockKinesisProducerLocust.py --no-web -c 10 -r 1 &
 

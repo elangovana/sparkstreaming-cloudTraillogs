@@ -19,11 +19,13 @@ def write_to_dynamodb(json_payload):
     hits=json_payload["count"]
     detectedOnTimestamp=json_payload["detectedOnTimestamp"]
     id=json_payload["id"]
+    isAnomaly = int(json_payload["isAnomaly"])
     item = {'id': {'S': id}
         , 'timestamp': {'N': str(int(time.time()))}
         , 'sourceIPAddress': {'S': sourceIPAddress}
         , 'count': {'N': str(hits)}
         , 'detectedOnTimestamp':{'N':detectedOnTimestamp}
+        , 'isAnomaly': {'BOOL': "isAnomaly" }
         }
 
     client = boto3.client('dynamodb',  region_name='us-east-1', api_version='2012-08-10')

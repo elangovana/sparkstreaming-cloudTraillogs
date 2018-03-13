@@ -15,15 +15,23 @@ import random
 
 class MockKinesisProducer(TaskSet):
 
-    def __init__(self):
-        self.config = self.get_config()
+    def __init__(self, parent):
+        super(MockKinesisProducer, self).__init__(parent)
+        self._config = None
+
+    def config(self):
+        if self._config is None:
+            with open('config.json') as json_data_file:
+                data = json.load(json_data_file)
+            self._config = data
+        return self._config
 
 
     def get_kinesis_stream_name(self):
-        return self.config["kinesis_stream_name"]
+        return self.config()["kinesis_stream_name"]
 
     def get_region(self):
-        return self.config["region"]
+        return self.config()["region"]
 
 
     def get_stream_status(self, conn, stream_name):
@@ -79,7 +87,7 @@ class MockKinesisProducer(TaskSet):
     @task
     def put_data(self):
         region = self.get_region()
-        stream_name = self.get_region()
+        stream_name = self.get_kinesis_stream_name()
         conn = kinesis.connect_to_region(region_name=region)
         try:
             # Check stream status

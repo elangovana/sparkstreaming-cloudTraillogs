@@ -1,4 +1,4 @@
 {
-  "kinesis_stream_name": "TestStream"
+  "kinesis_stream_name": "CloudTrailEventStream"
   ,"region": "us-east-1"
 }

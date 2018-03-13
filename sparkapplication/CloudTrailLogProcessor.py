@@ -24,7 +24,7 @@ class CloudTrailLogProcessor:
     def write_anomaly_kineses(self, anomaly_tuple):
         ip = anomaly_tuple[0]
         hits = anomaly_tuple[1]
-        anomaly_score = int(anomaly_tuple[2])
+        anomaly_score = anomaly_tuple[2]
         hash_key = str(uuid.uuid4())
         detectOnTimeStamp = str(int(time.time()))
         # TODO Hardcode names for stream
@@ -93,7 +93,7 @@ class CloudTrailLogProcessor:
             .map(lambda v: json.loads(v)) \
             .map(lambda ct: (ct["detail"]['sourceIPAddress'], 1)) \
             .reduceByKeyAndWindow(lambda a, b: a + b, invFunc=None, windowDuration=30, slideDuration=30)\
-            .map(lambda r: (r[0], r[1],  r[1] > threshold_count ))
+            .map(lambda r: (r[0], r[1], int( r[1] > threshold_count) ))
 
         dstream_anomalies.pprint()
 

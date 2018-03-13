@@ -14,11 +14,11 @@ def lambda_handler(event, context):
 
 
 def write_to_dynamodb(json_payload):
-    sourceIPAddress = json_payload["sourceIPAddress"]
-    hits = json_payload["count"]
-    detectedOnTimestamp = json_payload["detectedOnTimestamp"]
-    id = json_payload["id"]
-    anomalyScore = json_payload["anomalyScore"]
+    sourceIPAddress = json_payload["SOURCEIPADDRESS"]
+    hits = json_payload["OCCURRENCE"]
+    detectedOnTimestamp = json_payload["EVENTTIMESTAMP"]
+    id = json_payload["ID"]
+    anomalyScore = json_payload["SCORE"]
     item = {'id': {'S': id}
         , 'timestamp': {'N': str(int(time.time()))}
         , 'sourceIPAddress': {'S': sourceIPAddress}

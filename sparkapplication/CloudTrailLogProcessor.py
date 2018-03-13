@@ -35,11 +35,11 @@ class CloudTrailLogProcessor:
         detectOnTimeStamp = int(time.time())
         stream_name = self.anomaly_stream_name
 
-        item = {'id': hash_key
-            , 'detectedOnTimestamp': detectOnTimeStamp
-            , 'sourceIPAddress':  ip
-            , 'count':  hits
-            , "anomalyScore":anomaly_score}
+        item = {'ID': hash_key
+            , 'EVENTTIMESTAMP': detectOnTimeStamp
+            , 'SOURCEIPADDRESS':  ip
+            , 'OCCURRENCE':  hits
+            , "SCORE":anomaly_score}
 
         client = self._get_kinesis_client()
         client.put_record(

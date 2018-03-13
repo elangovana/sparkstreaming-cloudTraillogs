@@ -18,13 +18,13 @@ def write_to_dynamodb(json_payload):
     hits = json_payload["count"]
     detectedOnTimestamp = json_payload["detectedOnTimestamp"]
     id = json_payload["id"]
-    isAnomaly = json_payload["isAnomaly"].upper() == "TRUE"
+    anomalyScore = json_payload["anomalyScore"]
     item = {'id': {'S': id}
         , 'timestamp': {'N': str(int(time.time()))}
         , 'sourceIPAddress': {'S': sourceIPAddress}
         , 'count': {'N': str(hits)}
         , 'detectedOnTimestamp': {'N': detectedOnTimestamp}
-        , 'isAnomaly': {'BOOL': isAnomaly}
+        , 'anomalyScore': {'N': anomalyScore}
             }
 
     print(item)

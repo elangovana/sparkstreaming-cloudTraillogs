@@ -24,7 +24,7 @@ class CloudTrailLogProcessor:
     def write_anomaly_kineses(self, anomaly_tuple):
         ip = anomaly_tuple[0]
         hits = anomaly_tuple[1]
-        is_anomaly = str(anomaly_tuple[2])
+        anomaly_score = int(anomaly_tuple[2])
         hash_key = str(uuid.uuid4())
         detectOnTimeStamp = str(int(time.time()))
         # TODO Hardcode names for stream
@@ -34,7 +34,7 @@ class CloudTrailLogProcessor:
             , 'detectedOnTimestamp': detectOnTimeStamp
             , 'sourceIPAddress':  ip
             , 'count':  hits
-            , "isAnomaly":is_anomaly}
+            , "anomalyScore":anomaly_score}
 
         client = self._get_kinesis_client()
         client.put_record(

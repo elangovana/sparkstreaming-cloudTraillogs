@@ -9,21 +9,15 @@ import json
 import uuid
 import boto3.session
 from pyspark.sql import SparkSession, Row
-from pyspark.sql.window import Window
-from boto import dynamodb
 import boto3
 import time
-from pyspark import HiveContext, SQLContext
-from pyspark.sql.functions import from_json
-from pyspark.sql.types import StructType, StringType
-from pyspark.streaming.kinesis import KinesisUtils
+
 
 
 class CloudTrailLogProcessor:
 
-    def __init__(self, rewrite_stream_name, anomaly_stream_name, region):
+    def __init__(self, anomaly_stream_name, region):
         self.anomaly_stream_name = anomaly_stream_name
-        self.rewrite_stream_name = rewrite_stream_name
         self.region= region
 
 
@@ -49,18 +43,18 @@ class CloudTrailLogProcessor:
             SequenceNumberForOrdering=str(detectOnTimeStamp)
         )
 
-    #TODO might not need this code, check if kineses to kineses stream "copy" is possible
-    def write_orginial_data_kineses(self, raw):
-        stream_name = self.rewrite_stream_name
-
-        client = self._get_kinesis_client()
-
-        client.put_record(
-            StreamName=stream_name,
-            Data=raw,
-            PartitionKey=str(uuid.uuid4()),
-            SequenceNumberForOrdering=str(int(time.time()))
-        )
+    # #TODO might not need this code, check if kineses to kineses stream "copy" is possible
+    # def write_orginial_data_kineses(self, raw):
+    #     stream_name = self.rewrite_stream_name
+    #
+    #     client = self._get_kinesis_client()
+    #
+    #     client.put_record(
+    #         StreamName=stream_name,
+    #         Data=raw,
+    #         PartitionKey=str(uuid.uuid4()),
+    #         SequenceNumberForOrdering=str(int(time.time()))
+    #     )
 
     # TODO remove this,as this does not work as kinese connector doesnt create df,
     def detect_anomaly_withsql(self, sc, ssc, dstream):
@@ -105,8 +99,8 @@ class CloudTrailLogProcessor:
         dstream_anomalies.foreachRDD(lambda rdd: rdd.foreach(lambda x: self.write_anomaly_kineses(x)))
 
     def process(self, sc, ssc, dstreamRecords):
-        # write to original data back to a different stream
-        dstreamRecords.foreachRDD(lambda rdd: rdd.foreach(lambda x: self.write_orginial_data_kineses(x)))
+        # # write to original data back to a different stream
+        # dstreamRecords.foreachRDD(lambda rdd: rdd.foreach(lambda x: self.write_orginial_data_kineses(x)))
 
         # detect anomalies
         self.detect_anomaly(sc, ssc, dstreamRecords)

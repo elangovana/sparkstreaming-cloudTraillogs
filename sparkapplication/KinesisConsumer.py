@@ -6,7 +6,7 @@ from sparkapplication.CloudTrailLogProcessor import CloudTrailLogProcessor
 
 
 class KinesisConsumer:
-    def run(self, appName, streamName, endpointUrl, region_name, rewrite_stream_name, anomaly_stream_name):
+    def run(self, appName, streamName, endpointUrl, region_name, anomaly_stream_name):
         sc = SparkContext(appName="PythonStreamingKinesisAnomalyDetection")
         print("Initialised SC")
         #TODO: log warn and above only
@@ -15,7 +15,7 @@ class KinesisConsumer:
         ssc = StreamingContext(sc, 1)
         dstreamRecords = KinesisUtils.createStream(
             ssc, appName, streamName, endpointUrl, region_name, InitialPositionInStream.LATEST, 2)
-        CloudTrailLogProcessor(rewrite_stream_name = rewrite_stream_name, anomaly_stream_name=anomaly_stream_name, region=region_name)\
+        CloudTrailLogProcessor( anomaly_stream_name=anomaly_stream_name, region=region_name)\
             .process(sc, ssc, dstreamRecords)
         ssc.start()
         ssc.awaitTermination()

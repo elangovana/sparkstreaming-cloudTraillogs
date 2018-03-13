@@ -21,14 +21,19 @@ from pyspark.streaming.kinesis import KinesisUtils
 
 class CloudTrailLogProcessor:
 
+    def __init__(self, rewrite_stream_name, anomaly_stream_name, region):
+        self.anomaly_stream_name = anomaly_stream_name
+        self.rewrite_stream_name = rewrite_stream_name
+        self.region= region
+
+
     def write_anomaly_kineses(self, anomaly_tuple):
         ip = anomaly_tuple[0]
         hits = anomaly_tuple[1]
         anomaly_score = anomaly_tuple[2]
         hash_key = str(uuid.uuid4())
         detectOnTimeStamp = str(int(time.time()))
-        # TODO Hardcode names for stream
-        stream_name = "AnomalyEventStream"
+        stream_name = self.anomaly_stream_name
 
         item = {'id': hash_key
             , 'detectedOnTimestamp': detectOnTimeStamp
@@ -46,8 +51,7 @@ class CloudTrailLogProcessor:
 
     #TODO might not need this code, check if kineses to kineses stream "copy" is possible
     def write_orginial_data_kineses(self, raw):
-        # TODO Hardcode names for stream
-        stream_name = "ReproducedCloudTrailEventStream"
+        stream_name = self.rewrite_stream_name
 
         client = self._get_kinesis_client()
 
@@ -109,9 +113,9 @@ class CloudTrailLogProcessor:
 
     def _get_kinesis_client(self):
         #TODO use the standapproach for boto3session
-        session = boto3.session.Session(region_name='us-east-1')
-        client = session.client('kinesis', region_name='us-east-1',
-                                endpoint_url="https://kinesis.us-east-1.amazonaws.com")
+        session = boto3.session.Session(region_name=self.region)
+        client = session.client('kinesis', region_name=self.region,
+                                endpoint_url="https://kinesis.{}.amazonaws.com".format(self.region))
         return client
 
     def _getSparkSessionInstance(self, sparkConf):

@@ -9,6 +9,6 @@ if __name__ == "__main__":
             "Usage: main.py <app-name> <stream-name> <endpoint-url> <region-name>",
             file=sys.stderr)
         sys.exit(-1)
-    appName, streamName, endpointUrl, regionName = sys.argv[1:]
+    appName, streamName, endpointUrl, regionName, anomaly_stream_name, rewrite_steam_name= sys.argv[1:]
 
-    KinesisConsumer().run(appName, streamName, endpointUrl, regionName)
+    KinesisConsumer().run(appName, streamName, endpointUrl, regionName, anomaly_stream_name=anomaly_stream_name, rewrite_stream_name= rewrite_steam_name   )

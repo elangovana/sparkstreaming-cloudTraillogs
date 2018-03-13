@@ -1,0 +1,4 @@
+{
+  "kinesis_stream_name": "TestStream"
+  ,"region": "us-east-1"
+}

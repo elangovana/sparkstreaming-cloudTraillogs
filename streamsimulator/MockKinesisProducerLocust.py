@@ -9,7 +9,22 @@ from locust import TaskSet, task
 from boto import kinesis
 import random
 
+
+
+
+
 class MockKinesisProducer(TaskSet):
+
+    def __init__(self):
+        self.config = self.get_config()
+
+
+    def get_kinesis_stream_name(self):
+        return self.config["kinesis_stream_name"]
+
+    def get_region(self):
+        return self.config["region"]
+
 
     def get_stream_status(self, conn, stream_name):
         '''
@@ -63,9 +78,8 @@ class MockKinesisProducer(TaskSet):
 
     @task
     def put_data(self):
-        # TODO: Fix hardcoded region & stream
-        region = "us-east-1"
-        stream_name = "CloudTrailEventStream"
+        region = self.get_region()
+        stream_name = self.get_region()
         conn = kinesis.connect_to_region(region_name=region)
         try:
             # Check stream status
@@ -155,38 +169,6 @@ class MockKinesisProducer(TaskSet):
    "recipientAccountId": "157997839279"
  }
 }
-
-
-        # json_data = """{
-        #     "eventVersion": "1.04",
-        #     "userIdentity": {
-        #         "type": "IAMUser",
-        #         "principalId": "EX_PRINCIPAL_ID",
-        #         "arn": "arn:aws:iam::123456789012:user/Alice",
-        #         "accountId": "123456789012",
-        #         "accessKeyId": "EXAMPLE_KEY_ID",
-        #         "userName": "Alice"
-        #     },
-        #     "eventTime": "2016-07-14T19:15:45Z",
-        #     "eventSource": "cloudtrail.amazonaws.com",
-        #     "eventName": "UpdateTrail",
-        #     "awsRegion": "us-east-2",
-        #     "sourceIPAddress": "205.251.233.182",
-        #     "userAgent": "aws-cli/1.10.32 Python/2.7.9 Windows/7 botocore/1.4.22",
-        #     "errorCode": "TrailNotFoundException",
-        #     "errorMessage": "Unknown trail: myTrail2 for the user: 123456789012",
-        #     "requestParameters": {"name": "myTrail2"},
-        #     "responseElements": null,
-        #     "requestID": "5d40662a-49f7-11e6-97e4-d9cb6ff7d6a3",
-        #     "eventID": "b7d4398e-b2f0-4faa-9c76-e2d316a8d67f",
-        #     "eventType": "AwsApiCall",
-        #     "recipientAccountId": "123456789012"
-        # }
-        # """
-        # max = 1000
-        # for i in range(1, max):
-        #     data = "{}\n {}".format( data,   "This is a dummy data")
-        # data = "{}\n-----End of record at {} with {} records-----".format(data,str(datetime.now()), max)
         return json.dumps(json_data)
 
 

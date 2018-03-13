@@ -11,7 +11,6 @@ phases:
       - cp -R streamsimulator ./dist
       - python -m  zipfile -c ./dist/sparkapplication.zip  sparkapplication/*
       - python -m  zipfile -c ./dist/boto3.zip ./libs/boto3/*
-      - python -m  zipfile -c ./dist/boto.zip ./libs/boto/*
       - python -m  zipfile -c ./dist/botocore.zip ./libs/botocore/*
   post_build:
     commands:

@@ -24,6 +24,7 @@ class CloudTrailLogProcessor:
     def write_anomaly_kineses(self, anomaly_tuple):
         ip = anomaly_tuple[0]
         hits = anomaly_tuple[1]
+        is_anomaly = anomaly_tuple[2]
         hash_key = str(uuid.uuid4())
         detectOnTimeStamp = str(int(time.time()))
         # TODO Hardcode names for stream
@@ -32,7 +33,8 @@ class CloudTrailLogProcessor:
         item = {'id': hash_key
             , 'detectedOnTimestamp': detectOnTimeStamp
             , 'sourceIPAddress':  ip
-            , 'count':  hits}
+            , 'count':  hits
+            , "isAnomaly":is_anomaly}
 
         client = self._get_kinesis_client()
         client.put_record(
@@ -85,20 +87,18 @@ class CloudTrailLogProcessor:
         anomalies.foreach(lambda a: self.write_anomaly_kineses(a))
 
     def detect_anomaly(self, sc, ssc, dstream):
-        # Group by by IP & count
-        dstream_window = dstream \
+        threshold_count = 50
+        # Group by by IP & count and falg if anomaly
+        dstream_anomalies = dstream \
             .map(lambda v: json.loads(v)) \
             .map(lambda ct: (ct["detail"]['sourceIPAddress'], 1)) \
-            .reduceByKeyAndWindow(lambda a, b: a + b, invFunc=None, windowDuration=30, slideDuration=30)
+            .reduceByKeyAndWindow(lambda a, b: a + b, invFunc=None, windowDuration=30, slideDuration=30)\
+            .map(lambda r: (r[0], r[1],  r[1] > threshold_count ))
 
-        dstream_window.pprint()
-
-        # Anomalythreshold 3
-        anomalies = dstream_window.filter(lambda t: t[1] > 2)
-        anomalies.pprint()
+        dstream_anomalies.pprint()
 
         # send anomalies to kineses
-        anomalies.foreachRDD(lambda rdd: rdd.foreach(lambda x: self.write_anomaly_kineses(x)))
+        dstream_anomalies.foreachRDD(lambda rdd: rdd.foreach(lambda x: self.write_anomaly_kineses(x)))
 
     def process(self, sc, ssc, dstreamRecords):
         # write to original data back to a different stream

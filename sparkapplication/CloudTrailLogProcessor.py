@@ -86,11 +86,14 @@ class CloudTrailLogProcessor:
 
     def detect_anomaly(self, sc, ssc, dstream):
         threshold_count = 50
-        # Group by by IP & count and falg if anomaly
+        window_duration_in_sec = 30
+        slide_duration_in_sec = window_duration_in_sec
+
+        # Group by IP & count and flag if anomaly
         dstream_anomalies = dstream \
             .map(lambda v: json.loads(v)) \
             .map(lambda ct: (ct["detail"]['sourceIPAddress'], 1)) \
-            .reduceByKeyAndWindow(lambda a, b: a + b, invFunc=None, windowDuration=30, slideDuration=30)\
+            .reduceByKeyAndWindow(lambda a, b: a + b, invFunc=None, windowDuration=window_duration_in_sec, slideDuration=slide_duration_in_sec)\
             .map(lambda r: (r[0], r[1], int( r[1] > threshold_count) ))
 
         dstream_anomalies.pprint()

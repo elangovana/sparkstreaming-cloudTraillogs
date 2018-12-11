@@ -1,6 +1,7 @@
 ## Prerequisites
 ##### Spark 2.2
-###### TODO..Dynamodb tables, Additional Streams, lambda functions to deploy
+
+## TODO..Dynamodb tables, Additional Streams, lambda functions to deploy
 1. See [deploymentscript.py](deploymentscript.py)
 
 ## Steps to run the spark application

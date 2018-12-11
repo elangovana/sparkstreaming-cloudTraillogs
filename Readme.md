@@ -2,33 +2,53 @@
 ##### Spark 2.2
 ###### TODO..Dynamodb tables, Additional Streams, lambda functions to deploy
 
-## Steps to run
-#####List the latest builds
-aws s3 ls s3://aegovan-spark/builds/ --recursive | sort | tail -1
+## Steps to run the spark application
+1. Setup codebuild to build using the [buildspec.yml](buildspec.yml)
 
-#####Download the latest build
 
-mkdir buildartifacts
+2. Download the latest build. This example copies the 
 
-aws s3 cp s3://aegovan-spark/builds/<path>/SparkApplicationBuildArtifacts.zip ~/buildartifacts
+    ```bash
+    export s3_build_artifacts=s3://mubucket/builds/ 
+    # Get the latest builds to find the one you want t
+    aws s3 ls $s3_build_artifacts --recursive | sort | tail -1
+ 
+    mkdir buildartifacts
+    
+    aws s3 cp $s3_build_artifacts/<path>/SparkApplicationBuildArtifacts.zip ~/buildartifacts
 
-#####Set up files 
+    ```
 
-unzip ~/buildartifacts/SparkApplicationBuildArtifacts.zip -d deployfiles
 
-unzip deployfiles/sparkapplication.zip -d deployfiles/sparkapplication
+3. Extract the Set up files 
 
-#####Set up mock stream simulator
+    ```bash
+    unzip ~/buildartifacts/SparkApplicationBuildArtifacts.zip -d deployfiles
+    
+    unzip deployfiles/sparkapplication.zip -d deployfiles/sparkapplication
+    ```
 
-pip install locust --user
+4. Submit spark job
+    ```bash
+    cd deployfiles
+    spark-submit  --packages org.apache.spark:spark-streaming-kinesis-asl_2.11:2.3.0 --archives boto3.zip#boto3,botocore.zip#botocore,sparkapplication.zip#sparkapplication  main.py mydemoapp20180302 CloudTrailEventStream https://kinesis.us-east-1.amazonaws.com us-east-1 AnomalyEventStream 
+    ```
+   
 
-######Do this in a separate session or run as background task
+## Set up mock stream simulator
 
-cd deployfiles/streamsimulator/
-######### *** Edit config.json for the streamname to write to
-locust -f MockKinesisProducerLocust.py --no-web -c 10 -r 1
-nohup locust -f MockKinesisProducerLocust.py --no-web -c 10 -r 1 &
+1. Install locust
+    pip install locust --user
 
-#####Start spark job
-cd deployfiles
-spark-submit  --packages org.apache.spark:spark-streaming-kinesis-asl_2.11:2.3.0 --archives boto3.zip#boto3,botocore.zip#botocore,sparkapplication.zip#sparkapplication  main.py mydemoapp20180302 CloudTrailEventStream https://kinesis.us-east-1.amazonaws.com us-east-1 AnomalyEventStream 
+2. Do this in a separate session or run as background task
+    ```bash
+        cd deployfiles/streamsimulator/
+     ```
+     
+3. *** Edit config.json for the streamname to write to.
+
+4. Run locust
+    ```bash
+    locust -f MockKinesisProducerLocust.py --no-web -c 10 -r 1
+    nohup locust -f MockKinesisProducerLocust.py --no-web -c 10 -r 1 &
+    ```
